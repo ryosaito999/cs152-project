@@ -120,11 +120,18 @@ var: identifier { printf("var -> identifier\n"); }
 
 
 expression:
-add |
-IDENT add NUMBER
+IDENT
+| IDENT add NUMBER
+| IDENT sub NUMBER
+| IDENT div NUMBER
+| IDENT mult NUMBER
+| IDENT mod NUMBER
+| NUMBER
 ;
 
-bool_exp: add;
+bool_exp:
+IDENT
+;
 
 statement_else_loop: add;
 
@@ -213,10 +220,10 @@ R_PAREN { printf("r_paren -> R_PAREN\n"); };
 sub:
 SUB {printf("false -> SUB\n"); };
 
-multiply:
+mult:
 MULT {printf("false -> MULT\n"); };
 
-divide:
+div:
 DIV {printf("false -> DIV\n"); };
 
 mod:
