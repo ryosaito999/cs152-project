@@ -19,7 +19,7 @@ FILE * yyin;
   char *	string_val;
 }
 
-%start	program 
+%start	init 
 %token <int_val> NUMBER
 
 %token PROGRAM
@@ -70,17 +70,23 @@ FILE * yyin;
 
 %%
 
-program: program indent semicolon block end_program  { printf ("program -> PROGRAM IDENT SEMICOLON block END_PROGRAM\n"); }
+init: program identifier semicolon block end_program  { printf ("program -> PROGRAM IDENT SEMICOLON block END_PROGRAM\n"); }
         |
         ;
          
-
 block: declaration semicolon declaration_loop begin_program statement_loop   {printf("block -> declaration_loop begin_program statement_loop\n");}
 		;
 
 declaration_loop: declaration semicolon declaration_loop  {printf("block -> declaration_loop SEMICOLON declaration_loop\n");}
 | { printf("declaration_loop -> EMPTY\n"); }
 ;
+
+declaration: add
+
+statement_loop: add
+
+
+
 
 
 comp:
