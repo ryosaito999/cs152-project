@@ -1,7 +1,7 @@
 
 %{
 // Ryota Saito rsait001 861057726
-
+// Ben Quach 
 #define YY_NO_INPUT
 #include <stdio.h>
 #include <stdlib.h>
@@ -96,20 +96,29 @@ array_dec: array l_paren number r_paren of { printf("array_dec -> array l_paren 
 		| { printf("array_dec -> EMPTY\n"); }
 		;
 
-
-
 statement: var assign expression { printf("statement -> var assign expression\n"); }
+		| if bool_exp then statement semicolon statement_else_loop end_if { printf("statement -> if bool_exp then statement semicolon statement_else_loop endif\n"); }
+		| while bool_exp begin_loop statement semicolon statement_loop end_loop { printf("statement -> while bool_exp begin_loop statement semicolon statement_loop end_loop\n"); }
+		| do begin_loop statement semicolon statement_loop end_loop while bool_exp { printf("statement -> do begin_loop statement_loop end_loop while bool_exp\n"); }
+		| read var var_loop { printf("statement -> read var_loop\n"); }
+		| write var var_loop { printf("statement -> write var_loop\n"); }
 		| continue { printf("statement -> continue \n"); }
 		;		
 
-var: add
+var_loop: comma var var_loop { printf("var_loop -> comma var var_loop \n"); }
+		| { printf("var_loop -> EMPTY\n"); }
+		;
+		
+var: identifier { printf("var -> identifier\n"); }
+		| identifier l_paren expression r_paren { printf("var -> identifier l_paren expression r_paren\n"); }
+		;
+
 
 expression: add
 
+bool_exp: add
 
-
-
-
+statement_else_loop: add
 
 
 comp:
@@ -120,7 +129,6 @@ comp:
 			| LTE {printf("comp -> LTE\n"); }
 			| GTE {printf("comp -> GTE\n"); }
 			;
-
 
 program:
 	PROGRAM	{ printf("program -> PROGRAM\n"); };
