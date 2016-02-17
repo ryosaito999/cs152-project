@@ -264,7 +264,7 @@ NUMBER { printf("number -> NUMBER(%d)\n", yytext); };
 
 
 identifier:
-IDENT { printf("identifier -> INDENT(%s)\n", yytext); };      
+IDENT { printf("identifier -> IDENT(%s)\n", yytext); };      
 
 
 %%
