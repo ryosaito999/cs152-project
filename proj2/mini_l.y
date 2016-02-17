@@ -74,11 +74,15 @@ init: program identifier semicolon block end_program  { printf ("program -> PROG
         |
         ;
          
-block: declaration semicolon declaration_loop begin_program statement_loop   {printf("block -> declaration_loop begin_program statement_loop\n");}
+block: declaration semicolon declaration_loop begin_program statement_loop   {printf("block -> declaration_loop begin_program statement semicolon statement_loop\n");}
 		;
 
 declaration_loop: declaration semicolon declaration_loop  {printf("block -> declaration_loop semicolon declaration_loop\n");}
 		| { printf("declaration_loop -> EMPTY\n"); }
+		;
+
+statement_loop: statement semicolon statement_loop { printf("statement_loop -> statement semicolon statement_loop \n"); }
+		| { printf("statement_loop -> EMPTY\n"); }
 		;
 
 declaration: identifier identifier_loop colon array_dec integer {printf("declaration -> identifier identifier_loop colon array_dec interger\n");}
@@ -89,10 +93,20 @@ identifier_loop: comma identifier identifier_loop { printf("identifier_loop -> c
 		;
 
 array_dec: array l_paren number r_paren of { printf("array_dec -> array l_paren number r_paren of\n"); }
-		| { printf("array_loop -> EMPTY\n"); }
+		| { printf("array_dec -> EMPTY\n"); }
 		;
 
-statement_loop: add
+
+
+statement: var assign expression { printf("statement -> var assign expression\n"); }
+		| continue { printf("statement -> continue \n"); }
+		;		
+
+var: add
+
+expression: add
+
+
 
 
 
