@@ -130,10 +130,15 @@ IDENT
 ;
 
 bool_exp:
-IDENT
+expression EQ expression
+| expression GT expression
+| expression LT expression
 ;
 
-statement_else_loop: add;
+statement_else_loop:
+expression
+|
+;
 
 
 comp:
