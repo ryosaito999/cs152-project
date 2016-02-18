@@ -304,7 +304,7 @@ comma:
 COMMA {printf("comma -> COMMA\n"); };
 
 number:
-NUMBER { printf("number -> NUMBER(%d)\n", yytext); };
+NUMBER { printf("number -> NUMBER(%s)\n", yytext); };
 
 identifier:
 IDENT { printf("identifier -> IDENT(%s)\n", yytext); };      
