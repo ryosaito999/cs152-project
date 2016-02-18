@@ -77,7 +77,6 @@ block:
 declaration semicolon declaration_loop begin_program statement_loop   {printf("block -> declaration_loop begin_program statement semicolon statement_loop\n");}
 ;
 
-
 declaration_loop: declaration semicolon declaration_loop  {printf("block -> declaration_loop semicolon declaration_loop\n");}
 | { printf("declaration_loop -> EMPTY\n"); }
 ;
@@ -116,23 +115,22 @@ var: identifier { printf("var -> identifier\n"); }
 
 expression:
 IDENT { printf("expression -> IDENT \n"); }
-| IDENT add expression
-| IDENT sub expression
-| IDENT div expression
-| IDENT mult expression
-| IDENT mod expression
-| NUMBER
-| array_dec
+| IDENT add expression { printf("expression -> IDENT add expression \n"); }
+| IDENT sub expression { printf("expression -> IDENT sub expression \n"); }
+| IDENT div expression { printf("expression -> IDENT div expression \n"); }
+| IDENT mult expression { printf("expression -> IDENT mult expression \n"); }
+| IDENT mod expression { printf("expression -> IDENT mod expression \n"); }
+| NUMBER { printf("expression -> IDENT \n"); }
+| array_dec 
 ;
 
 bool_exp:
-expression EQ expression
-| expression GT expression
-| expression LT expression
-| expression GTE expression
-| bool_exp and bool_exp
+expression EQ expression { printf("bool_exp -> expression EQ expression \n"); }
+| expression GT expression { printf("bool_exp -> expression GT expression \n"); }
+| expression LT expression { printf("bool_exp -> expression LT expression\n"); }
+| expression GTE expression { printf("bool_exp -> expression GTE expression \n"); }
+| bool_exp and bool_exp { printf("bool_exp -> bool_exp and bool_exp \n"); }
 ;
-
 
 relation_and_exp: relation_exp relation_exp_loop { printf("relation_and_exp -> relation_exp relation_exp_loop \n"); }
 
