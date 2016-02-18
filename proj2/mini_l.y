@@ -1,4 +1,8 @@
+
 %{
+//Ryota Saito 861057726 
+//Ben Quach 
+
  #include <stdio.h>
  #include <stdlib.h>
  void yyerror(const char *msg);
@@ -7,8 +11,6 @@
  extern char* yytext;
  FILE * yyin;
 %}
-
-
 %error-verbose
 %union{
 	int int_val;
@@ -35,8 +37,6 @@
 
 %right ASSIGN
 
-
-
 %token <int_val> NUMBER
 %token PROGRAM
 %token BEGIN_PROGRAM
@@ -62,14 +62,12 @@
 %token COMMA
 %token QUESTION
 %token <string_val> IDENT
-
 %%
 
 init:
 program identifier semicolon block end_program { printf ("program -> program identifier semicolon block end_program\n"); }
 |
 ;
-
 
 block:
 declaration semicolon declaration_loop begin_program statement_loop   {printf("block -> declaration_loop begin_program statement semicolon statement_loop\n");}
@@ -120,7 +118,6 @@ statement semicolon statement_else_loop {printf("statement_else_loop -> statemen
 | { printf("statement_else_loop -> empty\n"); } 
 ;
 
-
 bool_exp: 
 relation_and_exp extra_or {printf("bool_exp -> relation_and_exp extra_or\n"); }
 ;
@@ -150,7 +147,6 @@ expression comp expression { printf("relation_exp_branches -> expression comp ex
 | false { printf("relation_exp_branches ->  false\n"); }
 | l_paren bool_exp r_paren { printf(" relation_exp_branches->  l_paren bool_exp r_paren\n"); }
 ;
-
 
 expression:
 multiplicative_exp add_sub_terms  { printf("expression -> multiplicative_exp add_sub_terms\n"); }
@@ -189,7 +185,6 @@ var { printf("term_branches -> var \n"); }
 | number { printf("term_branches -> number \n"); } 
 | l_paren expression r_paren { printf("term_branches -> l_paren expression r_paren \n"); } 
 ;
-
 
 var: 
 identifier add_exp { printf("var -> identifier add_exp \n"); } 
@@ -243,7 +238,7 @@ while:
 WHILE {printf("while -> WHILE\n"); };
 
 do:
-	DO {printf("do -> DO\n"); };
+DO {printf("do -> DO\n"); };
 
 begin_loop:
 BEGIN_LOOP {printf("begin_loop -> BEGINLOOP\n"); };  
