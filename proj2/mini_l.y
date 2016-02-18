@@ -121,22 +121,25 @@ var: identifier { printf("var -> identifier\n"); }
 
 expression:
 IDENT
-| IDENT add NUMBER
-| IDENT sub NUMBER
-| IDENT div NUMBER
-| IDENT mult NUMBER
-| IDENT mod NUMBER
+| IDENT add expression
+| IDENT sub expression
+| IDENT div expression
+| IDENT mult expression
+| IDENT mod expression
 | NUMBER
+| array_dec
 ;
 
 bool_exp:
 expression EQ expression
 | expression GT expression
 | expression LT expression
+| expression GTE expression
+| bool_exp and bool_exp
 ;
 
 statement_else_loop:
-expression
+statement
 |
 ;
 
