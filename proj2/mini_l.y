@@ -87,7 +87,7 @@ statement semicolon statement_loop { printf("statement_loop -> statement semicol
 ;
 
 declaration:
-identifier identifier_loop colon array_dec integer {printf("declaration -> identifier identifier_loop colon array_dec interger\n");}
+identifier identifier_loop colon array_dec  {printf("declaration -> identifier identifier_loop colon array_dec interger\n");}
 ;
 
 identifier_loop: 
@@ -96,8 +96,8 @@ comma identifier identifier_loop { printf("identifier_loop -> comma identifier i
 ;
 
 array_dec: 
-array l_paren number r_paren of { printf("array_dec -> array l_paren number r_paren of\n"); }
-| { printf("array_dec -> EMPTY\n"); }
+array l_paren number r_paren of integer { printf("array_dec -> array l_paren number r_paren of\n"); }
+| integer { printf("array_dec -> EMPTY\n"); }
 ;
             
 statement: 
@@ -140,17 +140,18 @@ and relation_exp extra_and{ printf("extra_and-> and relation_exp extra_and\n"); 
 | { printf("extra_and-> EMPTY \n"); }
 ;
 
-relation_exp: 
-optional_not expression comp expression { printf("optional_not -> optional_not expression comp expression\n"); }
-| optional_not true { printf("optional_not -> optional_not true\n"); }
-| optional_not false { printf("optional_not -> optional_not false\n"); }
-| optional_not l_paren bool_exp r_paren { printf("optional_not -> optional_not l_paren bool_exp r_paren\n"); }
+relation_exp:
+relation_exp_branches
+| not relation_exp_branches
 ;
 
-optional_not: 
-not  { printf("optional_not -> not\n"); }
-|  { printf("optional_not -> empty\n"); }
+relation_exp_branches: 
+expression comp expression { printf("optional_not -> optional_not expression comp expression\n"); }
+| true { printf("optional_not -> optional_not true\n"); }
+| false { printf("optional_not -> optional_not false\n"); }
+| l_paren bool_exp r_paren { printf("optional_not -> optional_not l_paren bool_exp r_paren\n"); }
 ;
+
 
 expression:
 multiplicative_exp add_sub_terms
@@ -180,14 +181,14 @@ mult
 |mod
 ;
 
-term: 
-optional_sub var 
-| optional_sub number
-| optional_sub l_paren expression r_paren
-;
+term:
+term_branches
+| sub term_branches
 
-optional_sub: sub
-| 
+term_branches: 
+var 
+| number
+| l_paren expression r_paren
 ;
 
 
