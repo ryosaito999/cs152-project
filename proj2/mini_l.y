@@ -14,7 +14,6 @@
 	int int_val;
 	char* string_val;
 }
-	
 %start  init
 %token <int_val> NUMBER
 
@@ -98,7 +97,6 @@ array_dec: array l_paren number r_paren of { printf("array_dec -> array l_paren 
 | { printf("array_dec -> EMPTY\n"); }
 ;
             
-
 statement: var assign expression { printf("statement -> var assign expression\n"); }
 | if bool_exp then statement semicolon statement_else_loop end_if { printf("statement -> if bool_exp then statement semicolon statement_else_loop endif\n"); }
 | while bool_exp begin_loop statement semicolon statement_loop end_loop { printf("statement -> while bool_exp begin_loop statement semicolon statement_loop end_loop\n"); }
@@ -117,7 +115,7 @@ var: identifier { printf("var -> identifier\n"); }
 ;
 
 expression:
-IDENT
+IDENT { printf("expression -> IDENT \n"); }
 | IDENT add expression
 | IDENT sub expression
 | IDENT div expression
@@ -135,10 +133,16 @@ expression EQ expression
 | bool_exp and bool_exp
 ;
 
-statement_else_loop:
-statement
-|
-;
+
+relation_and_exp: relation_exp relation_exp_loop { printf("relation_and_exp -> relation_exp relation_exp_loop \n"); }
+
+relation_exp_loop: and relation_exp relation_exp_loop { printf("relation_exp_loop -> and relation_exp relation_exp_loop \n"); }
+	| { printf("relation_exp_loop -> EMPTY \n"); }
+
+statement_else_loop: statement semicolon statement_else_loop {printf("statement_else_loop -> statement semicolon statement_else_loop\n"); }
+	| statement semicolon else statement semicolon statement_loop { printf("statement_else_loop -> statement semicolon else statement semicolon statement_loop\n"); }
+	| { printf("statement_else_loop -> empty\n"); } 
+	;
 
 relation_exp: optional_not expression comp expression { printf("optional_not -> optional_not expression comp expression\n"); }
 	| optional_not true { printf("optional_not -> optional_not true\n"); }
@@ -185,7 +189,7 @@ end_if:
 END_IF {printf("end_if -> END_IF\n"); };
 
 else:
-	ELSE {printf("else -> ELSE\n"); };
+ELSE {printf("else -> ELSE\n"); };
 
 while:
 WHILE {printf("while -> WHILE\n"); };
@@ -217,7 +221,6 @@ FALSE {printf("false -> FALSE\n"); };
 not:
 NOT {printf("not -> NOT\n"); };
 
-
 and:
 AND {printf("and -> AND\n"); };
 
@@ -229,7 +232,6 @@ L_PAREN { printf("l_paren -> L_PAREN\n"); };
 
 r_paren:
 R_PAREN { printf("r_paren -> R_PAREN\n"); };
-
 
 sub:
 SUB {printf("false -> SUB\n"); };
@@ -261,14 +263,10 @@ COMMA {printf("comma -> COMMA\n"); };
 number:
 NUMBER { printf("number -> NUMBER(%d)\n", yytext); };
 
-
 identifier:
-IDENT { printf("identifier -> INDENT(%s)\n", yytext); };      
-
+IDENT { printf("identifier -> IDENT(%s)\n", yytext); };      
 
 %%
-
-
 int main(int argc, char **argv) {
    if (argc > 1) {
       yyin = fopen(argv[1], "r");
