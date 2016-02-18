@@ -163,6 +163,7 @@ EQ {printf("comp -> EQ\n"); }
 | GTE {printf("comp -> GTE\n"); }
 ;
                       
+
 begin_program:
 BEGIN_PROGRAM {printf("begin_program -> BEGINPROGRAM\n"); };
 
@@ -188,7 +189,7 @@ end_if:
 END_IF {printf("end_if -> END_IF\n"); };
 
 else:
-	ELSE {printf("else -> ELSE\n"); };
+ELSE {printf("else -> ELSE\n"); };
 
 while:
 WHILE {printf("while -> WHILE\n"); };
