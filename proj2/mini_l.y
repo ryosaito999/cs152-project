@@ -70,33 +70,37 @@ program identifier semicolon block end_program { printf ("program -> PROGRAM IDE
 |
 ;
 
-program:
-PROGRAM { printf("program -> PROGRAM\n"); };
 
 block:
 declaration semicolon declaration_loop begin_program statement_loop   {printf("block -> declaration_loop begin_program statement semicolon statement_loop\n");}
 ;
 
-declaration_loop: declaration semicolon declaration_loop  {printf("block -> declaration_loop semicolon declaration_loop\n");}
+declaration_loop: 
+declaration semicolon declaration_loop  {printf("block -> declaration_loop semicolon declaration_loop\n");}
 | { printf("declaration_loop -> EMPTY\n"); }
 ;
 
-statement_loop: statement semicolon statement_loop { printf("statement_loop -> statement semicolon statement_loop \n"); }
+statement_loop: 
+statement semicolon statement_loop { printf("statement_loop -> statement semicolon statement_loop \n"); }
 | { printf("statement_loop -> EMPTY\n"); }
 ;
 
-declaration: identifier identifier_loop colon array_dec integer {printf("declaration -> identifier identifier_loop colon array_dec interger\n");}
+declaration:
+identifier identifier_loop colon array_dec integer {printf("declaration -> identifier identifier_loop colon array_dec interger\n");}
 ;
 
-identifier_loop: comma identifier identifier_loop { printf("identifier_loop -> comma identifier identifier_loop\n"); }
+identifier_loop: 
+comma identifier identifier_loop { printf("identifier_loop -> comma identifier identifier_loop\n"); }
 | { printf("identifier_loop -> EMPTY\n"); }
 ;
 
-array_dec: array l_paren number r_paren of { printf("array_dec -> array l_paren number r_paren of\n"); }
+array_dec: 
+array l_paren number r_paren of { printf("array_dec -> array l_paren number r_paren of\n"); }
 | { printf("array_dec -> EMPTY\n"); }
 ;
             
-statement: var assign expression { printf("statement -> var assign expression\n"); }
+statement: 
+var assign expression { printf("statement -> var assign expression\n"); }
 | if bool_exp then statement semicolon statement_else_loop end_if { printf("statement -> if bool_exp then statement semicolon statement_else_loop endif\n"); }
 | while bool_exp begin_loop statement semicolon statement_loop end_loop { printf("statement -> while bool_exp begin_loop statement semicolon statement_loop end_loop\n"); }
 | do begin_loop statement semicolon statement_loop end_loop while bool_exp { printf("statement -> do begin_loop statement_loop end_loop while bool_exp\n"); }
@@ -105,52 +109,84 @@ statement: var assign expression { printf("statement -> var assign expression\n"
 | continue { printf("statement -> continue \n"); }
 ;
 
-var_loop: comma var var_loop { printf("var_loop -> comma var var_loop \n"); }
+var_loop: 
+comma var var_loop { printf("var_loop -> comma var var_loop \n"); }
 | { printf("var_loop -> EMPTY\n"); }
 ;
+
+statement_else_loop: 
+statement semicolon statement_else_loop {printf("statement_else_loop -> statement semicolon statement_else_loop\n"); }
+| statement semicolon else statement semicolon statement_loop { printf("statement_else_loop -> statement semicolon else statement semicolon statement_loop\n"); }
+| { printf("statement_else_loop -> empty\n"); } 
+;
+
+
+bool_exp: 
+relation_and_exp extra_or
+;
+
+extra_or: 
+or relation_and_exp extra_or
+|
+;
+
+relation_and_exp: 
+relation_exp extra_and{ printf("relation_and_exp -> relation_exp extra_and\n"); }
+
+extra_and: 
+and relation_exp extra_and{ printf("extra_and-> and relation_exp extra_and\n"); }
+| { printf("extra_and-> EMPTY \n"); }
+
+
+
+relation_exp: 
+optional_not expression comp expression { printf("optional_not -> optional_not expression comp expression\n"); }
+| optional_not true { printf("optional_not -> optional_not true\n"); }
+| optional_not false { printf("optional_not -> optional_not false\n"); }
+| optional_not l_paren bool_exp r_paren { printf("optional_not -> optional_not l_paren bool_exp r_paren\n"); }
+;
+
+optional_not: 
+not  { printf("optional_not -> not\n"); }
+|  { printf("optional_not -> empty\n"); }
+;
+
+expression:
+multiplicative_exp add_sub_terms
+;
+
+add_sub_terms:
+add multiplicative_exp add_sub_terms
+|sub multiplicative_exp add_sub_terms
+|
+; 
+
+multiplicative_exp:
+term mult_div_mod_terms
+; 
+
+mult_div_mod_terms:
+|mult term mult_div_mod_terms
+|div term mult_div_mod_terms
+|mod term mult_div_mod_terms
+|
+;
+
+
+term: 
+optional_sub var 
+| optional_sub number
+| l_paren expression r_paren
+;
+
+optional_sub: sub
+| 
+;
+
 
 var: identifier { printf("var -> identifier\n"); }
 | identifier l_paren expression r_paren { printf("var -> identifier l_paren expression r_paren\n"); }
 ;
-
-expression:
-IDENT { printf("expression -> IDENT \n"); }
-| IDENT add expression { printf("expression -> IDENT add expression \n"); }
-| IDENT sub expression { printf("expression -> IDENT sub expression \n"); }
-| IDENT div expression { printf("expression -> IDENT div expression \n"); }
-| IDENT mult expression { printf("expression -> IDENT mult expression \n"); }
-| IDENT mod expression { printf("expression -> IDENT mod expression \n"); }
-| NUMBER { printf("expression -> IDENT \n"); }
-| array_dec 
-;
-
-bool_exp:
-expression EQ expression { printf("bool_exp -> expression EQ expression \n"); }
-| expression GT expression { printf("bool_exp -> expression GT expression \n"); }
-| expression LT expression { printf("bool_exp -> expression LT expression\n"); }
-| expression GTE expression { printf("bool_exp -> expression GTE expression \n"); }
-| bool_exp and bool_exp { printf("bool_exp -> bool_exp and bool_exp \n"); }
-;
-
-relation_and_exp: relation_exp relation_exp_loop { printf("relation_and_exp -> relation_exp relation_exp_loop \n"); }
-
-relation_exp_loop: and relation_exp relation_exp_loop { printf("relation_exp_loop -> and relation_exp relation_exp_loop \n"); }
-	| { printf("relation_exp_loop -> EMPTY \n"); }
-
-statement_else_loop: statement semicolon statement_else_loop {printf("statement_else_loop -> statement semicolon statement_else_loop\n"); }
-	| statement semicolon else statement semicolon statement_loop { printf("statement_else_loop -> statement semicolon else statement semicolon statement_loop\n"); }
-	| { printf("statement_else_loop -> empty\n"); } 
-	;
-
-relation_exp: optional_not expression comp expression { printf("optional_not -> optional_not expression comp expression\n"); }
-	| optional_not true { printf("optional_not -> optional_not true\n"); }
-	| optional_not false { printf("optional_not -> optional_not false\n"); }
-	| optional_not l_paren bool_exp r_paren { printf("optional_not -> optional_not l_paren bool_exp r_paren\n"); }
-	;
-
-optional_not: not  { printf("optional_not -> not\n"); }
-	|  { printf("optional_not -> empty\n"); }
-	;
 
 comp:
 EQ {printf("comp -> EQ\n"); }
@@ -161,6 +197,8 @@ EQ {printf("comp -> EQ\n"); }
 | GTE {printf("comp -> GTE\n"); }
 ;
                       
+program:
+PROGRAM { printf("program -> PROGRAM\n"); };
 
 begin_program:
 BEGIN_PROGRAM {printf("begin_program -> BEGINPROGRAM\n"); };
