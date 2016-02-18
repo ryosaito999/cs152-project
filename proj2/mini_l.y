@@ -130,6 +130,24 @@ expression EQ expression { printf("bool_exp -> expression EQ expression \n"); }
 | expression LT expression { printf("bool_exp -> expression LT expression\n"); }
 | expression GTE expression { printf("bool_exp -> expression GTE expression \n"); }
 | bool_exp and bool_exp { printf("bool_exp -> bool_exp and bool_exp \n"); }
+
+mult_expression:
+term
+| term mult term
+| term div term
+| term mod term
+;
+
+term:
+NUMBER
+| IDENT
+| L_PAREN expression R_PAREN
+| IDENT L_PAREN expression R_PAREN
+;
+
+bool_exp:
+relation_and_exp
+| relation_and_exp or relation_and_exp
 ;
 
 relation_and_exp: relation_exp relation_exp_loop { printf("relation_and_exp -> relation_exp relation_exp_loop \n"); }
