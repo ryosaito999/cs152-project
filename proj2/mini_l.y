@@ -14,9 +14,30 @@
 	int int_val;
 	char* string_val;
 }
-%start  init
-%token <int_val> NUMBER
 
+%start  init
+
+%left L_PAREN R_PAREN
+
+%right SUB
+
+%left MULT DIV MOD 
+
+%left ADD
+
+%left EQ NEQ LT GT LTE GTE
+
+%right NOT
+
+%left AND
+
+%left OR
+
+%right ASSIGN
+
+
+
+%token <int_val> NUMBER
 %token PROGRAM
 %token BEGIN_PROGRAM
 %token END_PROGRAM
@@ -36,33 +57,11 @@
 %token WRITE
 %token TRUE
 %token FALSE
-%token NOT
-%token AND
-%token OR
-%token L_PAREN
-%token R_PAREN
-%token SUB
-%token MULT
-%token DIV
-%token MOD
-%token ADD
-%token LT
-%token LTE
-%token GT
-%token GTE
-%token EQ
-%token NEQ
-%token ASSIGN
 %token COLON
 %token SEMICOLON
 %token COMMA
-%token L_BRACKET
-%token R_BRACKET
 %token QUESTION
 %token <string_val> IDENT
-
-%left OR AND ADD MULT DIV MOD EQ NEQ LT GT LTE GTE
-%right NOT SUB
 
 %%
 
