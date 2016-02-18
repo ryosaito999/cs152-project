@@ -61,7 +61,8 @@
 %token QUESTION
 %token <string_val> IDENT
 
-%left OR AND SUB ADD MULT DIV MOD EQ NEQ LT GT LTE GTE
+%left OR AND ADD MULT DIV MOD EQ NEQ LT GT LTE GTE
+%right NOT SUB
 
 %%
 
@@ -132,12 +133,12 @@ or relation_and_exp extra_or
 
 relation_and_exp: 
 relation_exp extra_and{ printf("relation_and_exp -> relation_exp extra_and\n"); }
-
+;
+	
 extra_and: 
 and relation_exp extra_and{ printf("extra_and-> and relation_exp extra_and\n"); }
 | { printf("extra_and-> EMPTY \n"); }
-
-
+;
 
 relation_exp: 
 optional_not expression comp expression { printf("optional_not -> optional_not expression comp expression\n"); }
@@ -152,26 +153,32 @@ not  { printf("optional_not -> not\n"); }
 ;
 
 expression:
-add
+multiplicative_exp add_sub_terms
 ;
 
 add_sub_terms:
-add multiplicative_exp add_sub_terms
-|sub multiplicative_exp add_sub_terms
+add_sub_terms tokens_1 multiplicative_exp 
 |
 ; 
 
-multiplicative_exp:
-term
-; 
+tokens_1:
+add
+|sub
 
+multiplicative_exp:
+term  mult_div_mod_terms
+; 
+ 
 mult_div_mod_terms:
-|mult term mult_div_mod_terms
-|div term mult_div_mod_terms
-|mod term mult_div_mod_terms
+mult_div_mod_terms tokens_2 term
 |
 ;
 
+tokens_2:
+mult
+|div
+|mod
+;
 
 term: 
 optional_sub var 
@@ -184,8 +191,13 @@ optional_sub: sub
 ;
 
 
-var: identifier { printf("var -> identifier\n"); }
-| identifier l_paren expression r_paren { printf("var -> identifier l_paren expression r_paren\n"); }
+var: 
+identifier add_exp
+;
+
+add_exp:
+l_paren expression r_paren { printf("var -> identifier l_paren expression r_paren\n"); }
+|
 ;
 
 comp:
