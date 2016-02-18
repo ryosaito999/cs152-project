@@ -84,7 +84,7 @@ statement semicolon statement_loop { printf("statement_loop -> statement semicol
 ;
 
 declaration:
-identifier identifier_loop colon array_dec  {printf("declaration -> identifier identifier_loop colon array_dec interger\n");}
+identifier identifier_loop colon array_dec integer {printf("declaration -> identifier identifier_loop colon array_dec\n");}
 ;
 
 identifier_loop: 
@@ -93,8 +93,8 @@ comma identifier identifier_loop { printf("identifier_loop -> comma identifier i
 ;
 
 array_dec: 
-array l_paren number r_paren of integer { printf("array_dec -> array l_paren number r_paren of\n"); }
-| integer { printf("array_dec -> EMPTY\n"); }
+array l_paren number r_paren of { printf("array_dec -> array l_paren number r_paren of\n"); }
+| 
 ;
             
 statement: 
