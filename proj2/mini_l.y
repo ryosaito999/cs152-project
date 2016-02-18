@@ -152,7 +152,7 @@ not  { printf("optional_not -> not\n"); }
 ;
 
 expression:
-multiplicative_exp add_sub_terms
+add
 ;
 
 add_sub_terms:
@@ -162,7 +162,7 @@ add multiplicative_exp add_sub_terms
 ; 
 
 multiplicative_exp:
-term mult_div_mod_terms
+term
 ; 
 
 mult_div_mod_terms:
@@ -176,7 +176,7 @@ mult_div_mod_terms:
 term: 
 optional_sub var 
 | optional_sub number
-| l_paren expression r_paren
+| optional_sub l_paren expression r_paren
 ;
 
 optional_sub: sub
