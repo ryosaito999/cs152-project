@@ -67,7 +67,7 @@
 %%
 
 init:
-program identifier semicolon block end_program { printf ("program -> PROGRAM IDENT SEMICOLON BEGIN_PROGRAM END_PROGRAM\n"); }
+program identifier semicolon block end_program { printf ("program -> program identifier semicolon block end_program\n"); }
 |
 ;
 
@@ -123,12 +123,12 @@ statement semicolon statement_else_loop {printf("statement_else_loop -> statemen
 
 
 bool_exp: 
-relation_and_exp extra_or
+relation_and_exp extra_or {printf("bool_exp -> relation_and_exp extra_or\n"); }
 ;
 
 extra_or: 
-or relation_and_exp extra_or
-|
+or relation_and_exp extra_or {printf("extra_or -> or relation_and_exp extra_or\n"); }
+| {printf("bool_exp -> EMPTY\n"); }
 ;
 
 relation_and_exp: 
@@ -141,63 +141,63 @@ and relation_exp extra_and{ printf("extra_and-> and relation_exp extra_and\n"); 
 ;
 
 relation_exp:
-relation_exp_branches
-| not relation_exp_branches
+relation_exp_branches { printf("relation_exp-> relation_exp_branches\n"); }
+| not relation_exp_branches { printf("relation_exp-> not relation_exp_branches\n"); }
 ;
 
 relation_exp_branches: 
-expression comp expression { printf("optional_not -> optional_not expression comp expression\n"); }
-| true { printf("optional_not -> optional_not true\n"); }
-| false { printf("optional_not -> optional_not false\n"); }
-| l_paren bool_exp r_paren { printf("optional_not -> optional_not l_paren bool_exp r_paren\n"); }
+expression comp expression { printf("relation_exp_branches -> expression comp expression\n"); }
+| true { printf("relation_exp_branches ->  true\n"); }
+| false { printf("relation_exp_branches ->  false\n"); }
+| l_paren bool_exp r_paren { printf(" relation_exp_branches->  l_paren bool_exp r_paren\n"); }
 ;
 
 
 expression:
-multiplicative_exp add_sub_terms
+multiplicative_exp add_sub_terms  { printf("expression -> multiplicative_exp add_sub_terms\n"); }
 ;
 
-add_sub_terms:
-add_sub_terms tokens_1 multiplicative_exp 
-|
+add_sub_terms: 
+add_sub_terms tokens_1 multiplicative_exp  { printf("add_sub_terms -> add_sub_terms tokens_1 multiplicative_exp\n"); } 
+|  { printf("add_sub_terms -> EMPTY\n"); } 
 ; 
 
-tokens_1:
-add
-|sub
+tokens_1: 
+add { printf("tokens_1 -> add\n"); } 
+|sub { printf("tokens_1 -> sub\n"); } 
 
 multiplicative_exp:
-term  mult_div_mod_terms
+term  mult_div_mod_terms { printf("multiplicative_exp -> term  mult_div_mod_terms\n"); } 
 ; 
  
 mult_div_mod_terms:
-mult_div_mod_terms tokens_2 term
-|
+mult_div_mod_terms tokens_2 term { printf("multiplicative_exp -> mult_div_mod_terms tokens_2 term \n"); } 
+| { printf("multiplicative_exp -> EMPTY \n"); } 
 ;
 
 tokens_2:
-mult
-|div
-|mod
+mult { printf("tokens_2 -> mult \n"); } 
+|div { printf("tokens_2 -> div \n"); } 
+|mod { printf("tokens_2 -> mod \n"); } 
 ;
 
-term:
-term_branches
-| sub term_branches
+term: 
+term_branches  { printf("term -> term_branches \n"); } 
+| sub term_branches { printf("term -> sub term_branches \n"); } 
 
 term_branches: 
-var 
-| number
-| l_paren expression r_paren
+var { printf("term_branches -> var \n"); } 
+| number { printf("term_branches -> number \n"); } 
+| l_paren expression r_paren { printf("term_branches -> l_paren expression r_paren \n"); } 
 ;
 
 
 var: 
-identifier add_exp
+identifier add_exp { printf("var -> identifier add_exp \n"); } 
 ;
 
 add_exp:
-l_paren expression r_paren { printf("var -> identifier l_paren expression r_paren\n"); }
+l_paren expression r_paren { printf("add_exp -> l_paren expression r_paren\n"); }
 |
 ;
 
