@@ -117,7 +117,7 @@ var: identifier { printf("var -> identifier\n"); }
 ;
 
 expression:
-IDENT
+IDENT { printf("expression -> IDENT \n"); }
 | IDENT add expression
 | IDENT sub expression
 | IDENT div expression
@@ -140,6 +140,21 @@ statement
 |
 ;
 
+<<<<<<< HEAD
+=======
+relation_and_exp: relation_exp relation_exp_loop { printf("relation_and_exp -> relation_exp relation_exp_loop \n"); }
+
+relation_exp_loop: and relation_exp relation_exp_loop { printf("relation_exp_loop -> and relation_exp relation_exp_loop \n"); }
+	| { printf("relation_exp_loop -> EMPTY \n"); }
+
+statement_else_loop: statement semicolon statement_else_loop {printf("statement_else_loop -> statement semicolon statement_else_loop\n"); }
+	| statement semicolon else statement semicolon statement_loop { printf("statement_else_loop -> statement semicolon else statement semicolon statement_loop\n"); }
+	| { printf("statement_else_loop -> empty\n"); } 
+	;
+
+else_end_statement: add
+	;
+>>>>>>> added relation_and
 
 relation_exp: optional_not expression comp expression { printf("optional_not -> optional_not expression comp expression\n"); }
 	| optional_not true { printf("optional_not -> optional_not true\n"); }
