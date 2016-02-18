@@ -108,8 +108,6 @@ statement: var assign expression { printf("statement -> var assign expression\n"
 | continue { printf("statement -> continue \n"); }
 ;
 
-
-
 var_loop: comma var var_loop { printf("var_loop -> comma var var_loop \n"); }
 | { printf("var_loop -> EMPTY\n"); }
 ;
@@ -118,23 +116,39 @@ var: identifier { printf("var -> identifier\n"); }
 | identifier l_paren expression r_paren { printf("var -> identifier l_paren expression r_paren\n"); }
 ;
 
-
 expression:
 IDENT
-| IDENT add NUMBER
-| IDENT sub NUMBER
-| IDENT div NUMBER
-| IDENT mult NUMBER
-| IDENT mod NUMBER
+| IDENT add expression
+| IDENT sub expression
+| IDENT div expression
+| IDENT mult expression
+| IDENT mod expression
 | NUMBER
+| array_dec
 ;
 
 bool_exp:
-IDENT
+expression EQ expression
+| expression GT expression
+| expression LT expression
+| expression GTE expression
+| bool_exp and bool_exp
 ;
 
-statement_else_loop: add;
+statement_else_loop:
+statement
+|
+;
 
+relation_exp: optional_not expression comp expression { printf("optional_not -> optional_not expression comp expression\n"); }
+	| optional_not true { printf("optional_not -> optional_not true\n"); }
+	| optional_not false { printf("optional_not -> optional_not false\n"); }
+	| optional_not l_paren bool_exp r_paren { printf("optional_not -> optional_not l_paren bool_exp r_paren\n"); }
+	;
+
+optional_not: not  { printf("optional_not -> not\n"); }
+	|  { printf("optional_not -> empty\n"); }
+	;
 
 comp:
 EQ {printf("comp -> EQ\n"); }
