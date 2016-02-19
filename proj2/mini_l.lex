@@ -10,8 +10,6 @@ CHAR     ([_a-zA-Z])*[a-zA-Z]
 IDENT    {CHAR}({CHAR}|{DIGIT})
 
 %%
-
-
 "program"            {currPos += yyleng; return PROGRAM;}
 "beginprogram"       {currPos += yyleng; return BEGIN_PROGRAM;}
 "endprogram"         {currPos += yyleng; return END_PROGRAM;}
@@ -63,6 +61,4 @@ IDENT    {CHAR}({CHAR}|{DIGIT})
 "\n"           {currLine++; currPos = 1;}
 
 .               {printf("Error at %d in column %d in '%s'\n", currLine, currPos, yytext); exit(0);}
-
-
 %%
