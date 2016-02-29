@@ -9,7 +9,8 @@
  extern int currLine;
  extern int currPos;
  extern char* yytext;
- FILE * yyin;
+ extern FILE * yyin;
+ extern int yylex();
 %}
 %error-verbose
 %union{
