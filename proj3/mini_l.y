@@ -5,12 +5,20 @@
 
  #include <stdio.h>
  #include <stdlib.h>
+ #include <iostream>
+ #include <string>
+ #include <vector>
+ #include "header.h"
  void yyerror(const char *msg);
  extern int currLine;
  extern int currPos;
  extern char* yytext;
  extern FILE * yyin;
  extern int yylex();
+ using namespace std;
+
+ vector<identifierStruct> m_allIdentifiers;
+ 
 %}
 %error-verbose
 %union{
