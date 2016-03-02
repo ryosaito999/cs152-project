@@ -8,6 +8,8 @@
  #include <iostream>
  #include <string>
  #include <vector>
+ #include <stack>
+ #include <sstream>
  #include "header.h"
  void yyerror(const char *msg);
  extern int currLine;
@@ -17,8 +19,12 @@
  extern int yylex();
  using namespace std;
 
- vector<identifierStruct> m_allIdentifiers;
- 
+ stack<identifierStruct> m_temporaries;
+ stack<identifierStruct> m_predicates; 
+ int currentLabel = 0;
+ stack<int> m_labelStack;
+
+ stringstream output;
 %}
 %error-verbose
 %union{
@@ -74,7 +80,11 @@
 %%
 
 init:
-program identifier semicolon block end_program { printf ("program -> program identifier semicolon block end_program\n"); }
+program identifier semicolon block end_program 
+{ 
+    printf ("program -> program identifier semicolon block end_program\n"); 
+    cout << output.str();
+}
 |
 ;
 
@@ -128,7 +138,10 @@ statement semicolon statement_else_loop {printf("statement_else_loop -> statemen
 ;
 
 bool_exp: 
-relation_and_exp extra_or {printf("bool_exp -> relation_and_exp extra_or\n"); }
+relation_and_exp extra_or {
+printf("bool_exp -> relation_and_exp extra_or\n"); 
+//push ident to predicate stack
+}
 ;
 
 extra_or: 
@@ -214,10 +227,15 @@ EQ {printf("comp -> EQ\n"); }
 ;
                       
 program:
-PROGRAM { printf("program -> PROGRAM\n"); };
+PROGRAM { 
+    printf("program -> PROGRAM\n"); 
+};
 
 begin_program:
-BEGIN_PROGRAM {printf("begin_program -> BEGINPROGRAM\n"); };
+BEGIN_PROGRAM {
+    printf("begin_program -> BEGINPROGRAM\n"); 
+    output << "BEGIN";
+};
 
 end_program:
 END_PROGRAM {printf("end_program -> ENDPROGRAM\n"); };
@@ -232,13 +250,25 @@ of:
 OF {printf("of -> OF\n"); };
 
 if:
-IF {printf("if -> IF\n"); };
+IF {
+    printf("if -> IF\n"); 
+    //add a label here
+    m_labelStack.push(currentLabel);
+};
 
 then:
 THEN {printf("then -> THEN\n"); };
 
 end_if:
-END_IF {printf("end_if -> END_IF\n"); };
+END_IF {
+    printf("end_if -> END_IF\n"); 
+    if(m_labelStack.empty())
+	{
+	    //output error message
+	}
+    int last = m_labelStack.top();
+    //so we have a label on the stack
+};
 
 else:
 ELSE {printf("else -> ELSE\n"); };
