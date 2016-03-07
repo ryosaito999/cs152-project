@@ -19,11 +19,16 @@
  extern int yylex();
  using namespace std;
 
- stack<identifierStruct> m_temporaries;
- stack<identifierStruct> m_predicates; 
+ stack<int> m_temporaries;
+ //num temps
+ int m_tn = 0;
+ stack<int> m_predicates; 
+ //num predicates
+ int m_pn = 0;
  int currentLabel = 0;
  stack<int> m_labelStack;
 
+ 
  stringstream output;
 %}
 %error-verbose
@@ -83,6 +88,16 @@ init:
 program identifier semicolon block end_program 
 { 
     printf ("program -> program identifier semicolon block end_program\n"); 
+    cout << endl;
+    for(int i = 0 ; i < m_tn; i++)
+	{
+	    cout << "t" << i << endl;
+	}
+    for(int i = 0 ; i < m_pn; i++)
+	{
+	    cout << "p" << i << endl;
+	}
+
     cout << output.str();
 }
 |
@@ -164,9 +179,25 @@ relation_exp_branches { printf("relation_exp-> relation_exp_branches\n"); }
 ;
 
 relation_exp_branches: 
-expression comp expression { printf("relation_exp_branches -> expression comp expression\n"); }
-| true { printf("relation_exp_branches ->  true\n"); }
-| false { printf("relation_exp_branches ->  false\n"); }
+expression comp expression 
+{ 
+ printf("relation_exp_branches -> expression comp expression\n"); 
+ 
+}
+| true 
+{
+ printf("relation_exp_branches ->  true\n"); 
+ m_predicates.push(m_pn);
+ m_pn++;
+ 
+}
+| false 
+{ 
+ printf("relation_exp_branches ->  false\n"); 
+ m_predicates.push(m_pn);
+ m_pn++;
+
+}
 | l_paren bool_exp r_paren { printf(" relation_exp_branches->  l_paren bool_exp r_paren\n"); }
 ;
 
@@ -267,6 +298,7 @@ END_IF {
 	    //output error message
 	}
     int last = m_labelStack.top();
+
     //so we have a label on the stack
 };
 
@@ -274,7 +306,10 @@ else:
 ELSE {printf("else -> ELSE\n"); };
 
 while:
-WHILE {printf("while -> WHILE\n"); };
+WHILE {
+printf("while -> WHILE\n"); 
+
+};
 
 do:
 DO {printf("do -> DO\n"); };
