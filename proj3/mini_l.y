@@ -26,8 +26,13 @@
  //num predicates
  int m_pn = 0;
  int currentLabel = 0;
+ //so this is insanely fucking annoying
+ //everything is done RECURSIVELY
+ //but we need to keep track of the changes between recusrive stacks since we eval exp -> 5 + 5
+ //so we need to throw them into fucking stacks
  stack<int> m_labelStack;
  stack<string> m_varStack;
+ stack<string> m_compStack;
  vector<string> m_variables;
  stringstream output;
 
@@ -190,7 +195,9 @@ expression comp expression
  m_varStack.pop();
  string t2 = m_varStack.top();
  m_varStack.pop();
- output << "== p" << m_pn << "," << t2 << "," << t << endl;
+ string comp = m_compStack.top();
+ m_compStack.pop();
+ output << comp << " p" << m_pn << "," << t2 << "," << t << endl;
  m_predicates.push(m_pn);
  m_pn++;
 }
@@ -301,12 +308,38 @@ l_paren expression r_paren
 ;
 
 comp:
-EQ {printf("comp -> EQ\n"); }
-| NEQ {printf("comp -> NEQ\n"); }
-| LT {printf("comp -> LT\n"); }
-| GT {printf("comp -> GT\n"); }
-| LTE {printf("comp -> LTE\n"); }
-| GTE {printf("comp -> GTE\n"); }
+EQ 
+{
+ printf("comp -> EQ\n"); 
+ //why push a comp onto a stack?
+ //because we need this state of the recursion to 'return' something up
+ m_compStack.push("==");
+}
+| NEQ 
+{
+ printf("comp -> NEQ\n"); 
+ m_compStack.push("!=");
+}
+| LT 
+{
+ printf("comp -> LT\n"); 
+ m_compStack.push("<");
+}
+| GT 
+{
+ printf("comp -> GT\n"); 
+ m_compStack.push(">");
+}
+| LTE 
+{
+ printf("comp -> LTE\n"); 
+ m_compStack.push("<=");
+}
+| GTE 
+{
+ printf("comp -> GTE\n"); 
+ m_compStack.push(">=");
+}
 ;
                       
 program:
@@ -432,6 +465,7 @@ COMMA {printf("comma -> COMMA\n"); };
 number:
 NUMBER {
  printf("number -> NUMBER(%s)\n", yytext); 
+ //we hit the bottom of the recursion! yay!
  m_varStack.push(string(yytext));
 };
 
