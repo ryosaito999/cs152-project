@@ -36,7 +36,7 @@
  vector<string> m_variables;
  stringstream output;
 
- void doOperation(string op,string operand2, string operand3);
+ void doOperationT(string op,string operand2, string operand3);
 %}
 %error-verbose
 %union{
@@ -231,7 +231,7 @@ add_sub_terms add multiplicative_exp
  m_varStack.pop();
  string t2 = m_varStack.top();
  m_varStack.pop(); 
- doOperation("+", t2, t);
+ doOperationT("+", t2, t);
 } 
 |
 add_sub_terms sub multiplicative_exp  
@@ -241,7 +241,7 @@ add_sub_terms sub multiplicative_exp
  m_varStack.pop();
  string t2 = m_varStack.top();
  m_varStack.pop(); 
- doOperation("-", t2, t);
+ doOperationT("-", t2, t);
 } 
 |  
 { printf("add_sub_terms -> EMPTY\n"); } 
@@ -256,11 +256,35 @@ term  mult_div_mod_terms
 ; 
  
 mult_div_mod_terms:
-mult_div_mod_terms mult term { printf("multiplicative_exp -> mult_div_mod_terms mult term \n"); } 
+mult_div_mod_terms mult term 
+{
+ printf("multiplicative_exp -> mult_div_mod_terms mult term \n"); 
+ string t = m_varStack.top();
+ m_varStack.pop();
+ string t2 = m_varStack.top();
+ m_varStack.pop(); 
+ doOperationT("*", t2, t);
+} 
 |
-mult_div_mod_terms div term { printf("multiplicative_exp -> mult_div_mod_terms div term \n"); } 
+mult_div_mod_terms div term 
+{
+ printf("multiplicative_exp -> mult_div_mod_terms div term \n"); 
+ string t = m_varStack.top();
+ m_varStack.pop();
+ string t2 = m_varStack.top();
+ m_varStack.pop(); 
+ doOperationT("/", t2, t);
+} 
 |
-mult_div_mod_terms mod term { printf("multiplicative_exp -> mult_div_mod_terms mod term \n"); } 
+mult_div_mod_terms mod term 
+{
+ printf("multiplicative_exp -> mult_div_mod_terms mod term \n"); 
+ string t = m_varStack.top();
+ m_varStack.pop();
+ string t2 = m_varStack.top();
+ m_varStack.pop(); 
+ doOperationT("%", t2, t);
+} 
 | 
 { printf("multiplicative_exp -> EMPTY \n"); } 
 ;
@@ -496,11 +520,21 @@ void yyerror(const char *msg) {
    printf("** Line %d, position %d: %s\n", currLine, currPos, msg);
 }
 
-void doOperation(string op, string operand2, string operand3)
+void doOperationT(string op, string operand2, string operand3)
 {
-    output << op << " t" << m_tn << " " << operand2 << " " << operand3 << endl;
+    output << op << " t" << m_tn << ", " << operand2 << ", " << operand3 << endl;
     stringstream ss;
     ss << m_tn;
     m_varStack.push(ss.str());
     m_tn++;
+}
+
+
+void doOperationP(string op, string operand2, string operand3)
+{
+    output << op << " p" << m_tn << ", " << operand2 << ", " << operand3 << endl;
+    stringstream ss;
+    ss << m_pn;
+    m_varStack.push(ss.str());
+    m_pn++;
 }
