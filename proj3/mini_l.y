@@ -139,7 +139,19 @@ array l_paren number r_paren of { printf("array_dec -> array l_paren number r_pa
 ;
             
 statement: 
-var assign expression { printf("statement -> var assign expression\n"); }
+var assign expression 
+{
+ printf("statement -> var assign expression\n"); 
+ string t = m_varStack.top();
+ m_varStack.pop();
+ string t2 = m_varStack.top();
+ m_varStack.pop();
+ output << "= " << t2 << ", " << t << endl;
+ stringstream ss;
+ ss << m_tn;
+ m_varStack.push("t" + ss.str());
+ m_tn++;
+}
 | if bool_exp then statement semicolon statement_else_loop end_if { printf("statement -> if bool_exp then statement semicolon statement_else_loop endif\n"); }
 | while bool_exp begin_loop statement semicolon statement_loop end_loop { printf("statement -> while bool_exp begin_loop statement semicolon statement_loop end_loop\n"); }
 | do begin_loop statement semicolon statement_loop end_loop while bool_exp { printf("statement -> do begin_loop statement_loop end_loop while bool_exp\n"); }
@@ -221,7 +233,10 @@ expression comp expression
 ;
 
 expression:
-multiplicative_exp add_sub_terms  { printf("expression -> multiplicative_exp add_sub_terms\n"); }
+multiplicative_exp add_sub_terms  
+{
+ printf("expression -> multiplicative_exp add_sub_terms\n"); 
+}
 ;
 
 add_sub_terms: 
@@ -525,8 +540,9 @@ void doOperationT(string op, string operand2, string operand3)
     output << op << " t" << m_tn << ", " << operand2 << ", " << operand3 << endl;
     stringstream ss;
     ss << m_tn;
-    m_varStack.push(ss.str());
+    m_varStack.push("t" + ss.str());
     m_tn++;
+
 }
 
 
