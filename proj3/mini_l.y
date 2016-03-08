@@ -98,11 +98,11 @@ program identifier semicolon block end_program
     cout << endl;
     for(int i = 0 ; i < m_tn; i++)
 	{
-	    cout << "t" << i << endl;
+	    cout << "\t . t" << i << endl;
 	}
     for(int i = 0 ; i < m_pn; i++)
 	{
-	    cout << "p" << i << endl;
+	    cout << "\t . p" << i << endl;
 	}
 
     cout << output.str();
@@ -141,7 +141,11 @@ array l_paren number r_paren of { printf("array_dec -> array l_paren number r_pa
 statement: 
 var assign expression 
 {
+    //icky
  printf("statement -> var assign expression\n"); 
+ //so right now, this only works for k := k
+ //but what if we want k(t) := k? then we have issues
+ //need to see if the VAR was an array because then we need to do a different assignment
  string t = m_varStack.top();
  m_varStack.pop();
  string t2 = m_varStack.top();
@@ -152,7 +156,11 @@ var assign expression
  m_varStack.push("t" + ss.str());
  m_tn++;
 }
-| if bool_exp then statement semicolon statement_else_loop end_if { printf("statement -> if bool_exp then statement semicolon statement_else_loop endif\n"); }
+| 
+if bool_exp then statement semicolon statement_else_loop end_if 
+{
+ printf("statement -> if bool_exp then statement semicolon statement_else_loop endif\n"); 
+}
 | while bool_exp begin_loop statement semicolon statement_loop end_loop { printf("statement -> while bool_exp begin_loop statement semicolon statement_loop end_loop\n"); }
 | do begin_loop statement semicolon statement_loop end_loop while bool_exp { printf("statement -> do begin_loop statement_loop end_loop while bool_exp\n"); }
 | read var var_loop { printf("statement -> read var_loop\n"); }
