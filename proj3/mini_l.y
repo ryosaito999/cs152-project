@@ -27,7 +27,7 @@
  int m_pn = 0;
  int currentLabel = 0;
  stack<int> m_labelStack;
-
+ stack<string> m_varStack;
  
  stringstream output;
 %}
@@ -174,7 +174,8 @@ and relation_exp extra_and{ printf("extra_and-> and relation_exp extra_and\n"); 
 ;
 
 relation_exp:
-relation_exp_branches { printf("relation_exp-> relation_exp_branches\n"); }
+relation_exp_branches 
+{ printf("relation_exp-> relation_exp_branches\n"); }
 | not relation_exp_branches { printf("relation_exp-> not relation_exp_branches\n"); }
 ;
 
@@ -206,16 +207,35 @@ multiplicative_exp add_sub_terms  { printf("expression -> multiplicative_exp add
 ;
 
 add_sub_terms: 
-add_sub_terms tokens_1 multiplicative_exp  { printf("add_sub_terms -> add_sub_terms tokens_1 multiplicative_exp\n"); } 
+add_sub_terms tokens_1 multiplicative_exp  
+{
+ printf("add_sub_terms -> add_sub_terms tokens_1 multiplicative_exp\n"); 
+} 
 |  { printf("add_sub_terms -> EMPTY\n"); } 
 ; 
 
 tokens_1: 
-add { printf("tokens_1 -> add\n"); } 
+add 
+{
+ printf("tokens_1 -> add\n"); 
+ string t = m_varStack.top();
+ m_varStack.pop();
+ string t2 = m_varStack.top();
+ m_varStack.pop();
+ 
+ output << " + t" << m_tn << " " << t2 << endl;
+ stringstream ss;
+ ss << m_tn;
+ m_varStack.push(ss.str());
+ m_tn++;
+} 
 |sub { printf("tokens_1 -> sub\n"); } 
 
 multiplicative_exp:
-term  mult_div_mod_terms { printf("multiplicative_exp -> term  mult_div_mod_terms\n"); } 
+term  mult_div_mod_terms 
+{
+ printf("multiplicative_exp -> term  mult_div_mod_terms\n"); 
+} 
 ; 
  
 mult_div_mod_terms:
@@ -230,21 +250,42 @@ mult { printf("tokens_2 -> mult \n"); }
 ;
 
 term: 
-term_branches  { printf("term -> term_branches \n"); } 
+term_branches  
+{
+ printf("term -> term_branches \n"); 
+} 
 | sub term_branches { printf("term -> sub term_branches \n"); } 
 
 term_branches: 
-var { printf("term_branches -> var \n"); } 
-| number { printf("term_branches -> number \n"); } 
-| l_paren expression r_paren { printf("term_branches -> l_paren expression r_paren \n"); } 
+var 
+{
+ printf("term_branches -> var \n"); 
+} 
+| 
+number 
+{
+ printf("term_branches -> number \n"); 
+} 
+| 
+l_paren expression r_paren 
+{
+ printf("term_branches -> l_paren expression r_paren \n"); 
+} 
 ;
 
 var: 
-identifier add_exp { printf("var -> identifier add_exp \n"); } 
+identifier add_exp 
+{
+ printf("var -> identifier add_exp \n"); 
+ 
+} 
 ;
 
 add_exp:
-l_paren expression r_paren { printf("add_exp -> l_paren expression r_paren\n"); }
+l_paren expression r_paren 
+{
+ printf("add_exp -> l_paren expression r_paren\n"); 
+}
 |
 ;
 
@@ -265,7 +306,7 @@ PROGRAM {
 begin_program:
 BEGIN_PROGRAM {
     printf("begin_program -> BEGINPROGRAM\n"); 
-    output << "BEGIN";
+    output << "BEGIN" << endl;
 };
 
 end_program:
@@ -378,10 +419,19 @@ comma:
 COMMA {printf("comma -> COMMA\n"); };
 
 number:
-NUMBER { printf("number -> NUMBER(%s)\n", yytext); };
+NUMBER {
+ printf("number -> NUMBER(%s)\n", yytext); 
+ m_varStack.push(yytext);
+};
 
 identifier:
-IDENT { printf("identifier -> IDENT(%s)\n", yytext); };      
+IDENT {
+
+ printf("identifier -> IDENT(%s)\n", yytext); 
+ //check if the test exists befoehand
+ string s = yytext;
+ m_varStack.push(yytext);
+};      
 
 %%
 int main(int argc, char **argv) {
