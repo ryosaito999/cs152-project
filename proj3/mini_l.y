@@ -30,6 +30,8 @@
  stack<string> m_varStack;
  vector<string> m_variables;
  stringstream output;
+
+ void doOperation(string op,string operand2, string operand3);
 %}
 %error-verbose
 %union{
@@ -209,24 +211,24 @@ multiplicative_exp add_sub_terms  { printf("expression -> multiplicative_exp add
 add_sub_terms: 
 add_sub_terms add multiplicative_exp  
 {
- printf("add_sub_terms -> add_sub_terms add multiplicative_exp\n"); 
  string t = m_varStack.top();
  m_varStack.pop();
  string t2 = m_varStack.top();
- m_varStack.pop();
- 
- output << " + t" << m_tn << " " << t2 << " " << t << endl;
- stringstream ss;
- ss << m_tn;
- m_varStack.push(ss.str());
- m_tn++;
+ m_varStack.pop(); 
+ doOperation("+", t2, t);
 } 
 |
 add_sub_terms sub multiplicative_exp  
 {
  printf("add_sub_terms -> add_sub_terms sub multiplicative_exp\n"); 
+ string t = m_varStack.top();
+ m_varStack.pop();
+ string t2 = m_varStack.top();
+ m_varStack.pop(); 
+ doOperation("-", t2, t);
 } 
-|  { printf("add_sub_terms -> EMPTY\n"); } 
+|  
+{ printf("add_sub_terms -> EMPTY\n"); } 
 ; 
 
 
@@ -449,4 +451,13 @@ int main(int argc, char **argv) {
 
 void yyerror(const char *msg) {
    printf("** Line %d, position %d: %s\n", currLine, currPos, msg);
+}
+
+void doOperation(string op, string operand2, string operand3)
+{
+    output << op << " t" << m_tn << " " << operand2 << " " << operand3 << endl;
+    stringstream ss;
+    ss << m_tn;
+    m_varStack.push(ss.str());
+    m_tn++;
 }
