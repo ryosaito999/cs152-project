@@ -28,7 +28,7 @@
  int currentLabel = 0;
  stack<int> m_labelStack;
  stack<string> m_varStack;
- 
+ vector<string> m_variables;
  stringstream output;
 %}
 %error-verbose
@@ -207,29 +207,28 @@ multiplicative_exp add_sub_terms  { printf("expression -> multiplicative_exp add
 ;
 
 add_sub_terms: 
-add_sub_terms tokens_1 multiplicative_exp  
+add_sub_terms add multiplicative_exp  
 {
- printf("add_sub_terms -> add_sub_terms tokens_1 multiplicative_exp\n"); 
-} 
-|  { printf("add_sub_terms -> EMPTY\n"); } 
-; 
-
-tokens_1: 
-add 
-{
- printf("tokens_1 -> add\n"); 
+ printf("add_sub_terms -> add_sub_terms add multiplicative_exp\n"); 
  string t = m_varStack.top();
  m_varStack.pop();
  string t2 = m_varStack.top();
  m_varStack.pop();
  
- output << " + t" << m_tn << " " << t2 << endl;
+ output << " + t" << m_tn << " " << t2 << " " << t << endl;
  stringstream ss;
  ss << m_tn;
  m_varStack.push(ss.str());
  m_tn++;
 } 
-|sub { printf("tokens_1 -> sub\n"); } 
+|
+add_sub_terms sub multiplicative_exp  
+{
+ printf("add_sub_terms -> add_sub_terms sub multiplicative_exp\n"); 
+} 
+|  { printf("add_sub_terms -> EMPTY\n"); } 
+; 
+
 
 multiplicative_exp:
 term  mult_div_mod_terms 
@@ -239,15 +238,16 @@ term  mult_div_mod_terms
 ; 
  
 mult_div_mod_terms:
-mult_div_mod_terms tokens_2 term { printf("multiplicative_exp -> mult_div_mod_terms tokens_2 term \n"); } 
-| { printf("multiplicative_exp -> EMPTY \n"); } 
+mult_div_mod_terms mult term { printf("multiplicative_exp -> mult_div_mod_terms mult term \n"); } 
+|
+mult_div_mod_terms div term { printf("multiplicative_exp -> mult_div_mod_terms div term \n"); } 
+|
+mult_div_mod_terms mod term { printf("multiplicative_exp -> mult_div_mod_terms mod term \n"); } 
+| 
+{ printf("multiplicative_exp -> EMPTY \n"); } 
 ;
 
-tokens_2:
-mult { printf("tokens_2 -> mult \n"); } 
-|div { printf("tokens_2 -> div \n"); } 
-|mod { printf("tokens_2 -> mod \n"); } 
-;
+
 
 term: 
 term_branches  
@@ -421,7 +421,7 @@ COMMA {printf("comma -> COMMA\n"); };
 number:
 NUMBER {
  printf("number -> NUMBER(%s)\n", yytext); 
- m_varStack.push(yytext);
+ m_varStack.push(string(yytext));
 };
 
 identifier:
@@ -430,6 +430,8 @@ IDENT {
  printf("identifier -> IDENT(%s)\n", yytext); 
  //check if the test exists befoehand
  string s = yytext;
+
+
  m_varStack.push(yytext);
 };      
 
