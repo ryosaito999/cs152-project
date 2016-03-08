@@ -185,11 +185,19 @@ relation_exp_branches:
 expression comp expression 
 { 
  printf("relation_exp_branches -> expression comp expression\n"); 
- 
+ //actually eval
+ string t = m_varStack.top();
+ m_varStack.pop();
+ string t2 = m_varStack.top();
+ m_varStack.pop();
+ output << "== p" << m_pn << "," << t2 << "," << t << endl;
+ m_predicates.push(m_pn);
+ m_pn++;
 }
 | true 
 {
  printf("relation_exp_branches ->  true\n"); 
+ output << "== p" << m_pn << ", 1, 1" << endl;
  m_predicates.push(m_pn);
  m_pn++;
  
@@ -197,6 +205,7 @@ expression comp expression
 | false 
 { 
  printf("relation_exp_branches ->  false\n"); 
+ output << "== p" << m_pn << ", 1, 0" << endl;
  m_predicates.push(m_pn);
  m_pn++;
 
