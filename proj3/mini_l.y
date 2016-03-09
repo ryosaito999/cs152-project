@@ -484,7 +484,9 @@ ELSE
 while:
 WHILE {
 printf("while -> WHILE\n"); 
-
+ m_labelStack.push(m_ln);
+    output << "L" << m_ln << endl; 
+    m_ln++;
 };
 
 do:
@@ -508,10 +510,10 @@ CONTINUE {
  //continue
  
  int l = m_labelStack.top();
- //m_labelStack.pop();
+m_labelStack.pop();
  //THIS IS CURRENTLY BROEKN
- //MAKE JUMP BACK TO WHILE STTEMENT NOT FORWARD
-    output << "\t:=L" << l << endl; 
+ output << "\t:=L" << m_labelStack.top() << endl; 
+ m_labelStack.push(l);
 
 };
 
