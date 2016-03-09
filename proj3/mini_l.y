@@ -25,12 +25,13 @@
  stack<int> m_predicates; 
  //num predicates
  int m_pn = 0;
- int currentLabel = 0;
+ //int currentLabel = 0;
  //so this is insanely fucking annoying
  //everything is done RECURSIVELY
  //but we need to keep track of the changes between recusrive stacks since we eval exp -> 5 + 5
  //so we need to throw them into fucking stacks
  stack<int> m_labelStack;
+ int m_ln = 0;
  stack<string> m_varStack;
  stack<string> m_compStack;
  vector<string> m_variables;
@@ -150,7 +151,7 @@ var assign expression
  m_varStack.pop();
  string t2 = m_varStack.top();
  m_varStack.pop();
- output << "= " << t2 << ", " << t << endl;
+ output << "\t" << "= " << t2 << ", " << t << endl;
  stringstream ss;
  ss << m_tn;
  m_varStack.push("t" + ss.str());
@@ -160,9 +161,25 @@ var assign expression
 if bool_exp then statement semicolon statement_else_loop end_if 
 {
  printf("statement -> if bool_exp then statement semicolon statement_else_loop endif\n"); 
+ //change of fuckin plans
+ //dont need a label for IF 
+ //so push a label on if and then that will be elses label
+ int l = m_labelStack.top();
+ m_labelStack.pop();
+ output << "L" << l << endl;
 }
-| while bool_exp begin_loop statement semicolon statement_loop end_loop { printf("statement -> while bool_exp begin_loop statement semicolon statement_loop end_loop\n"); }
-| do begin_loop statement semicolon statement_loop end_loop while bool_exp { printf("statement -> do begin_loop statement_loop end_loop while bool_exp\n"); }
+| 
+while bool_exp begin_loop statement semicolon statement_loop end_loop { printf("statement -> while bool_exp begin_loop statement semicolon statement_loop end_loop\n"); }
+| do begin_loop statement semicolon statement_loop end_loop while bool_exp 
+{
+    //fuck me and fuck this
+ printf("statement -> do begin_loop statement_loop end_loop while bool_exp\n"); 
+ int l = m_labelStack.top();
+ m_labelStack.pop();
+ int p = m_predicates.top();
+ m_predicates.pop();
+ output << "\t?:= L"<<l<< ", " << "p" << p << endl;
+}
 | read var var_loop { printf("statement -> read var_loop\n"); }
 | write var var_loop { printf("statement -> write var_loop\n"); }
 | continue { printf("statement -> continue \n"); }
@@ -174,8 +191,20 @@ comma var var_loop { printf("var_loop -> comma var var_loop \n"); }
 ;
 
 statement_else_loop: 
-statement semicolon statement_else_loop {printf("statement_else_loop -> statement semicolon statement_else_loop\n"); }
-| statement semicolon else statement semicolon statement_loop { printf("statement_else_loop -> statement semicolon else statement semicolon statement_loop\n"); }
+statement semicolon statement_else_loop 
+{
+ printf("statement_else_loop -> statement semicolon statement_else_loop\n"); 
+ 
+}
+| 
+statement semicolon else statement semicolon statement_loop 
+{
+    //IF WE GET AN ELSE STATEMENT
+    //POP SO THAT IF JUMPTS TO THE ELSE
+    //THEN ADD A JUMP TO ENDIF
+ printf("statement_else_loop -> statement semicolon else statement semicolon statement_loop\n"); 
+
+}
 | { printf("statement_else_loop -> empty\n"); } 
 ;
 
@@ -217,14 +246,14 @@ expression comp expression
  m_varStack.pop();
  string comp = m_compStack.top();
  m_compStack.pop();
- output << comp << " p" << m_pn << "," << t2 << "," << t << endl;
+ output << "\t"<< comp << " p" << m_pn << "," << t2 << "," << t << endl;
  m_predicates.push(m_pn);
  m_pn++;
 }
 | true 
 {
  printf("relation_exp_branches ->  true\n"); 
- output << "== p" << m_pn << ", 1, 1" << endl;
+ output << "\t" << "== p" << m_pn << ", 1, 1" << endl;
  m_predicates.push(m_pn);
  m_pn++;
  
@@ -232,7 +261,7 @@ expression comp expression
 | false 
 { 
  printf("relation_exp_branches ->  false\n"); 
- output << "== p" << m_pn << ", 1, 0" << endl;
+ output << "\t" << "== p" << m_pn << ", 1, 0" << endl;
  m_predicates.push(m_pn);
  m_pn++;
 
@@ -416,26 +445,41 @@ if:
 IF {
     printf("if -> IF\n"); 
     //add a label here
-    m_labelStack.push(currentLabel);
+    
+    m_labelStack.push(m_ln);
+    m_ln++;
+    
 };
 
 then:
-THEN {printf("then -> THEN\n"); };
+THEN {
+ printf("then -> THEN\n"); 
+ //haveto do this here to put the jump in
+ int l = m_labelStack.top();
+ int p = m_predicates.top();
+ m_predicates.pop();
+ output << "\t?:=L" << l << ", p" << p << endl;
+};
 
 end_if:
 END_IF {
     printf("end_if -> END_IF\n"); 
-    if(m_labelStack.empty())
-	{
-	    //output error message
-	}
-    int last = m_labelStack.top();
+
 
     //so we have a label on the stack
+    
 };
 
 else:
-ELSE {printf("else -> ELSE\n"); };
+ELSE 
+{
+ printf("else -> ELSE\n"); 
+ int l = m_labelStack.top();
+ m_labelStack.pop();
+ output << "L" << l << endl;
+ m_ln++;
+ m_labelStack.push(m_ln);
+};
 
 while:
 WHILE {
@@ -444,7 +488,13 @@ printf("while -> WHILE\n");
 };
 
 do:
-DO {printf("do -> DO\n"); };
+DO {
+ printf("do -> DO\n"); 
+ m_labelStack.push(m_ln);
+    output << "L" << m_ln << endl; 
+    m_ln++;
+
+};
 
 begin_loop:
 BEGIN_LOOP {printf("begin_loop -> BEGINLOOP\n"); };  
@@ -453,7 +503,17 @@ end_loop:
 END_LOOP {printf("end_loop -> ENDLOOP\n"); };
 
 continue:
-CONTINUE {printf("continue-> CONTINUE\n"); };
+CONTINUE {
+ printf("continue-> CONTINUE\n"); 
+ //continue
+ 
+ int l = m_labelStack.top();
+ //m_labelStack.pop();
+ //THIS IS CURRENTLY BROEKN
+ //MAKE JUMP BACK TO WHILE STTEMENT NOT FORWARD
+    output << "\t:=L" << l << endl; 
+
+};
 
 read:
 READ {printf("read -> READ\n"); };
@@ -545,7 +605,7 @@ void yyerror(const char *msg) {
 
 void doOperationT(string op, string operand2, string operand3)
 {
-    output << op << " t" << m_tn << ", " << operand2 << ", " << operand3 << endl;
+    output << "\t"<< op << " t" << m_tn << ", " << operand2 << ", " << operand3 << endl;
     stringstream ss;
     ss << m_tn;
     m_varStack.push("t" + ss.str());
@@ -556,7 +616,7 @@ void doOperationT(string op, string operand2, string operand3)
 
 void doOperationP(string op, string operand2, string operand3)
 {
-    output << op << " p" << m_tn << ", " << operand2 << ", " << operand3 << endl;
+    output << "\t" << op << " p" << m_tn << ", " << operand2 << ", " << operand3 << endl;
     stringstream ss;
     ss << m_pn;
     m_varStack.push(ss.str());
