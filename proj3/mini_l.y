@@ -36,7 +36,9 @@
  stack<string> m_compStack;
  vector<string> m_variables;
  stringstream output;
-
+ stack<string> m_declarations;
+ stack<int> m_arrays;
+ vector<string> m_finalDecs;
  void doOperationT(string op,string operand2, string operand3);
 %}
 %error-verbose
@@ -97,6 +99,7 @@ program identifier semicolon block end_program
 { 
     printf ("program -> program identifier semicolon block end_program\n"); 
     cout << endl;
+
     for(int i = 0 ; i < m_tn; i++)
 	{
 	    cout << "\t . t" << i << endl;
@@ -126,7 +129,12 @@ statement semicolon statement_loop { printf("statement_loop -> statement semicol
 ;
 
 declaration:
-identifier identifier_loop colon array_dec integer {printf("declaration -> identifier identifier_loop colon array_dec\n");}
+identifier identifier_loop colon array_dec integer 
+{
+ printf("declaration -> identifier identifier_loop colon array_dec\n");
+ //declare shit here
+
+}
 ;
 
 identifier_loop: 
@@ -135,7 +143,11 @@ comma identifier identifier_loop { printf("identifier_loop -> comma identifier i
 ;
 
 array_dec: 
-array l_paren number r_paren of { printf("array_dec -> array l_paren number r_paren of\n"); }
+array l_paren number r_paren of 
+{ 
+ printf("array_dec -> array l_paren number r_paren of\n"); 
+ 
+}
 | 
 ;
             
@@ -151,11 +163,30 @@ var assign expression
  m_varStack.pop();
  string t2 = m_varStack.top();
  m_varStack.pop();
- output << "\t" << "= " << t2 << ", " << t << endl;
- stringstream ss;
- ss << m_tn;
- m_varStack.push("t" + ss.str());
- m_tn++;
+
+ if(m_arrays.empty())
+     {
+
+	 output << "\t" << "= " << t2 << ", " << t << endl;
+	 stringstream ss;
+	 ss << m_tn;
+	 m_varStack.push("t" + ss.str());
+	 m_tn++;
+     }
+ else
+     {
+
+	 std::stringstream revout;
+	 string t3 = m_varStack.top();
+	 m_varStack.pop();
+	 revout << m_tn;
+	 output << "\t=[] " << t3 << ", " << t << ", "
+		<< t2 << endl;
+	 t = "t" + revout.str();
+	 m_arrays.pop();
+
+     }
+
 }
 | 
 if bool_exp then statement semicolon statement_else_loop end_if 
@@ -166,7 +197,7 @@ if bool_exp then statement semicolon statement_else_loop end_if
  //so push a label on if and then that will be elses label
  int l = m_labelStack.top();
  m_labelStack.pop();
- output << "L" << l << endl;
+ output << ": L" << l << endl;
 }
 | 
 while bool_exp begin_loop statement semicolon statement_loop end_loop { printf("statement -> while bool_exp begin_loop statement semicolon statement_loop end_loop\n"); }
@@ -246,7 +277,7 @@ expression comp expression
  m_varStack.pop();
  string comp = m_compStack.top();
  m_compStack.pop();
- output << "\t"<< comp << " p" << m_pn << "," << t2 << "," << t << endl;
+ output << "\t"<< comp << " p" << m_pn << ", " << t2 << ", " << t << endl;
  m_predicates.push(m_pn);
  m_pn++;
 }
@@ -279,7 +310,9 @@ multiplicative_exp add_sub_terms
 add_sub_terms: 
 add_sub_terms add multiplicative_exp  
 {
+
  string t = m_varStack.top();
+
  m_varStack.pop();
  string t2 = m_varStack.top();
  m_varStack.pop(); 
@@ -379,6 +412,8 @@ add_exp:
 l_paren expression r_paren 
 {
  printf("add_exp -> l_paren expression r_paren\n"); 
+ //actually got an index so we report it
+ m_arrays.push(1);
 }
 |
 ;
@@ -426,7 +461,7 @@ PROGRAM {
 begin_program:
 BEGIN_PROGRAM {
     printf("begin_program -> BEGINPROGRAM\n"); 
-    output << "BEGIN" << endl;
+    output << ": START" << endl;
 };
 
 end_program:
@@ -476,7 +511,7 @@ ELSE
  printf("else -> ELSE\n"); 
  int l = m_labelStack.top();
  m_labelStack.pop();
- output << "L" << l << endl;
+ output << ": L" << l << endl;
  m_ln++;
  m_labelStack.push(m_ln);
 };
@@ -485,7 +520,7 @@ while:
 WHILE {
 printf("while -> WHILE\n"); 
  m_labelStack.push(m_ln);
-    output << "L" << m_ln << endl; 
+    output << ": L" << m_ln << endl; 
     m_ln++;
 };
 
@@ -493,7 +528,7 @@ do:
 DO {
  printf("do -> DO\n"); 
  m_labelStack.push(m_ln);
-    output << "L" << m_ln << endl; 
+ output <<  ": L" << m_ln << endl; 
     m_ln++;
 
 };
@@ -510,7 +545,7 @@ CONTINUE {
  //continue
  
  int l = m_labelStack.top();
-m_labelStack.pop();
+ m_labelStack.pop();
  //THIS IS CURRENTLY BROEKN
  output << "\t:=L" << m_labelStack.top() << endl; 
  m_labelStack.push(l);
@@ -585,8 +620,8 @@ IDENT {
  //check if the test exists befoehand
  string s = yytext;
 
-
- m_varStack.push(yytext);
+ m_declarations.push("_" + string(yytext));
+ m_varStack.push("_"+ string(yytext));
 };      
 
 %%
