@@ -141,19 +141,30 @@ identifier identifier_loop colon array_dec integer
  string t = m_varStack.top();
  m_varStack.pop();
  if(m_arrays.empty())
-     {
+ {
 	 output << "\t . " << t << endl;
-     }
+ }
  else
-     {
+ {
 	 output << "\t . " << t << "spooky array" << endl;
 	 m_arrays.pop();
-     }
+ }
 }
 ;
 
 identifier_loop: 
-comma identifier identifier_loop { printf("identifier_loop -> comma identifier identifier_loop\n"); }
+comma identifier identifier_loop { 
+printf("identifier_loop -> comma identifier identifier_loop\n"); 
+ 
+ // found more variables so pop'em
+ string t = m_varStack.top(); 
+ m_varStack.pop();
+ if(m_arrays.empty())
+ {
+     output << "\t . " << t << endl;
+ }
+
+}
 | { printf("identifier_loop -> EMPTY\n"); }
 ;
 
