@@ -198,8 +198,8 @@ var assign expression
 	 string t3 = m_varStack.top();
 	 m_varStack.pop();
 	 revout << m_tn;
-	 output << "\t[]= " << t3 << ", " << t << ", "
-		<< t2 << endl;
+	 output << "\t[]= " << t3 << ", " << t2 << ", "
+		<< t << endl;
 	 t = "t" + revout.str();
 	 m_arrays.pop();
      }
@@ -424,8 +424,8 @@ var
 	 //this right now only works if array is on the left
 	 std::stringstream revout;
 	 revout << m_tn;
-	 output << "\t=[] t" << m_tn << ", " << t << ", "
-		<< t2 << endl;
+	 output << "\t=[] t" << m_tn << ", " << t2 << ", "
+		<< t << endl;
 
 	 stringstream ss;
 	 ss << m_tn;
