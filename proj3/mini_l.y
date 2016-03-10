@@ -67,6 +67,7 @@
 
 %right ASSIGN
 
+
 %token <int_val> NUMBER
 %token PROGRAM
 %token BEGIN_PROGRAM
@@ -92,6 +93,9 @@
 %token COMMA
 %token QUESTION
 %token <string_val> IDENT
+
+%type<string_val> add_exp
+%type<string_val> var
 %%
 
 init:
@@ -99,7 +103,7 @@ program identifier semicolon block end_program
 { 
     printf ("program -> program identifier semicolon block end_program\n"); 
     cout << endl;
-
+    
     for(int i = 0 ; i < m_tn; i++)
 	{
 	    cout << "\t . t" << i << endl;
@@ -133,7 +137,18 @@ identifier identifier_loop colon array_dec integer
 {
  printf("declaration -> identifier identifier_loop colon array_dec\n");
  //declare shit here
-
+ //what if we have an array?
+ string t = m_varStack.top();
+ m_varStack.pop();
+ if(m_arrays.empty())
+     {
+	 output << "\t . " << t << endl;
+     }
+ else
+     {
+	 output << "\t . " << t << "spooky array" << endl;
+	 m_arrays.pop();
+     }
 }
 ;
 
@@ -146,7 +161,7 @@ array_dec:
 array l_paren number r_paren of 
 { 
  printf("array_dec -> array l_paren number r_paren of\n"); 
- 
+ m_arrays.push(1);
 }
 | 
 ;
@@ -156,15 +171,17 @@ var assign expression
 {
     //icky
  printf("statement -> var assign expression\n"); 
+
  //so right now, this only works for k := k
  //but what if we want k(t) := k? then we have issues
  //need to see if the VAR was an array because then we need to do a different assignment
+
+
  string t = m_varStack.top();
  m_varStack.pop();
  string t2 = m_varStack.top();
  m_varStack.pop();
-
- if(m_arrays.empty())
+ if(strcmp($1,"array"))
      {
 
 	 output << "\t" << "= " << t2 << ", " << t << endl;
@@ -175,18 +192,19 @@ var assign expression
      }
  else
      {
-
+	 //need to check if we are doing a []= or a =[]
+	 //this right now only works if array is on the left
 	 std::stringstream revout;
 	 string t3 = m_varStack.top();
 	 m_varStack.pop();
 	 revout << m_tn;
-	 output << "\t=[] " << t3 << ", " << t << ", "
+	 output << "\t[]= " << t3 << ", " << t << ", "
 		<< t2 << endl;
 	 t = "t" + revout.str();
 	 m_arrays.pop();
-
      }
 
+ 
 }
 | 
 if bool_exp then statement semicolon statement_else_loop end_if 
@@ -304,6 +322,7 @@ expression:
 multiplicative_exp add_sub_terms  
 {
  printf("expression -> multiplicative_exp add_sub_terms\n"); 
+
 }
 ;
 
@@ -371,7 +390,9 @@ mult_div_mod_terms mod term
  doOperationT("%", t2, t);
 } 
 | 
-{ printf("multiplicative_exp -> EMPTY \n"); } 
+{
+ printf("multiplicative_exp -> EMPTY \n"); 
+} 
 ;
 
 
@@ -380,13 +401,40 @@ term:
 term_branches  
 {
  printf("term -> term_branches \n"); 
+
 } 
-| sub term_branches { printf("term -> sub term_branches \n"); } 
+| 
+sub term_branches 
+{
+ printf("term -> sub term_branches \n"); 
+} 
 
 term_branches: 
 var 
 {
  printf("term_branches -> var \n"); 
+ if(!strcmp($1, "array"))
+     {
+	 string t = m_varStack.top();
+	 m_varStack.pop();
+	 string t2 = m_varStack.top();
+	 m_varStack.pop();
+
+	 //need to check if we are doing a []= or a =[]
+	 //this right now only works if array is on the left
+	 std::stringstream revout;
+	 revout << m_tn;
+	 output << "\t=[] t" << m_tn << ", " << t << ", "
+		<< t2 << endl;
+
+	 stringstream ss;
+	 ss << m_tn;
+	 m_varStack.push("t" + ss.str());
+	 m_tn++;
+	 t = "t" + revout.str();
+	 m_arrays.pop();
+     }
+
 } 
 | 
 number 
@@ -404,7 +452,10 @@ var:
 identifier add_exp 
 {
  printf("var -> identifier add_exp \n"); 
+ //unroll array if we have one
+  
  
+ $$ = $2;
 } 
 ;
 
@@ -414,8 +465,12 @@ l_paren expression r_paren
  printf("add_exp -> l_paren expression r_paren\n"); 
  //actually got an index so we report it
  m_arrays.push(1);
+ $$ = "array";
 }
 |
+{
+    $$="var";
+}
 ;
 
 comp:
@@ -511,8 +566,10 @@ ELSE
  printf("else -> ELSE\n"); 
  int l = m_labelStack.top();
  m_labelStack.pop();
- output << ": L" << l << endl;
  m_ln++;
+ //output << "\t:= L" << m_ln << endl;
+ output << ": L" << l << endl;
+
  m_labelStack.push(m_ln);
 };
 
@@ -595,7 +652,11 @@ add:
 ADD {printf("false -> ADD\n"); };
 
 assign:
-ASSIGN {printf("assign -> ASSIGN\n"); };
+ASSIGN 
+{
+ printf("assign -> ASSIGN\n"); 
+
+};
 
 colon:
 COLON { printf("colon -> COLON\n"); };
