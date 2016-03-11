@@ -31,6 +31,7 @@
  //but we need to keep track of the changes between recusrive stacks since we eval exp -> 5 + 5
  //so we need to throw them into fucking stacks
  stack<int> m_labelStack;
+ //stack<int> m_loopStack;
  int m_ln = 0;
  stack<string> m_varStack;
  stack<string> m_compStack;
@@ -40,6 +41,20 @@
  stack<int> m_arrays;
  vector<string> m_finalDecs;
  void doOperationT(string op,string operand2, string operand3);
+
+ typedef struct  linkedListNode                                                                                                                                                                                                                                                   
+ {                                                                                                                                                                                                                                                                                
+     linkedListNode* next;                                                                                                                                                                                                                                                        
+     char val[256];                                                                                                                                                                                                                                                               
+ }Node;   
+
+ typedef struct loopStackStruct
+ {
+     int label;
+     string type;
+ }loopStack;
+
+ stack<loopStackStruct> m_loopStack;
 %}
 %error-verbose
 %union{
@@ -207,31 +222,50 @@ var assign expression
  
 }
 | 
-if bool_exp then statement semicolon statement_else_loop end_if 
+if ifbool_exp then statement semicolon statement_else_loop end_if 
 {
  printf("statement -> if bool_exp then statement semicolon statement_else_loop endif\n"); 
  //change of fuckin plans
  //dont need a label for IF 
  //so push a label on if and then that will be elses label
- int l = m_labelStack.top();
- m_labelStack.pop();
- output << ": L" << l << endl;
+ 
 }
 | 
-while bool_exp begin_loop statement semicolon statement_loop end_loop { printf("statement -> while bool_exp begin_loop statement semicolon statement_loop end_loop\n"); }
-| do begin_loop statement semicolon statement_loop end_loop while bool_exp 
+while bool_exp begin_loop statement semicolon statement_loop end_loop 
+{ 
+    printf("statement -> while bool_exp begin_loop statement semicolon statement_loop end_loop\n"); 
+    if(!m_loopStack.empty())
+	{
+		    loopStack get = m_loopStack.top();
+		    m_loopStack.pop();
+		    int label = get.label;
+
+		    output << "\t:= L" << m_ln <<endl;
+		    output << ": L" << label <<endl;
+		    m_ln++;
+	}
+}
+| do begin_loop statement semicolon statement_loop end_loop dowhile bool_exp 
 {
     //fuck me and fuck this
- printf("statement -> do begin_loop statement_loop end_loop while bool_exp\n"); 
- int l = m_labelStack.top();
- m_labelStack.pop();
- int p = m_predicates.top();
- m_predicates.pop();
- output << "\t?:= L"<<l<< ", " << "p" << p << endl;
+    printf("statement -> do begin_loop statement_loop end_loop while bool_exp\n"); 
+
+    //reserve m_lns
+    //so we know that do is the second thing on the stack
+
+
+
 }
 | read var var_loop { printf("statement -> read var_loop\n"); }
-| write var var_loop { printf("statement -> write var_loop\n"); }
-| continue { printf("statement -> continue \n"); }
+| write var var_loop 
+{
+ printf("statement -> write var_loop\n"); 
+ //pop off
+}
+| continue 
+{
+ printf("statement -> continue \n"); 
+}
 ;
 
 var_loop: 
@@ -260,12 +294,40 @@ statement semicolon else statement semicolon statement_loop
 bool_exp: 
 relation_and_exp extra_or {
 printf("bool_exp -> relation_and_exp extra_or\n"); 
-//push ident to predicate stack
+		    //we have a do loop on the stack so pop and point back to it
+///so this will always be an IF or a WHILE loop.
+    int p = m_predicates.top();
+    m_predicates.pop();
+    if(!m_loopStack.empty())
+	{
+		    loopStack get = m_loopStack.top();
+		    m_loopStack.pop();
+		    int label = get.label;
+
+		    output << "\t?:= L" << label << ", p" << p <<  endl;
+	}
+}
+;
+
+ifbool_exp: 
+relation_and_exp extra_or {
+
 }
 ;
 
 extra_or: 
-or relation_and_exp extra_or {printf("extra_or -> or relation_and_exp extra_or\n"); }
+or relation_and_exp extra_or 
+{
+ printf("extra_or -> or relation_and_exp extra_or\n"); 
+//push ident to predicate stack
+ int t = m_predicates.top();
+ m_predicates.pop();
+ int t2 = m_predicates.top();
+ m_predicates.pop();
+ output << "\t||" << " p" << m_pn << ", p" << t2 << ", p" << t << endl;
+ m_predicates.push(m_pn);
+ m_pn++;
+}
 | {printf("bool_exp -> EMPTY\n"); }
 ;
 
@@ -274,14 +336,29 @@ relation_exp extra_and{ printf("relation_and_exp -> relation_exp extra_and\n"); 
 ;
 	
 extra_and: 
-and relation_exp extra_and{ printf("extra_and-> and relation_exp extra_and\n"); }
+and relation_exp extra_and
+{
+ printf("extra_and-> and relation_exp extra_and\n"); 
+//push ident to predicate stack
+ int t = m_predicates.top();
+ m_predicates.pop();
+ int t2 = m_predicates.top();
+ m_predicates.pop();
+ output << "\t&&" << " p" << m_pn << ", p" << t2 << ", p" << t << endl;
+ m_predicates.push(m_pn);
+ m_pn++;
+}
 | { printf("extra_and-> EMPTY \n"); }
 ;
 
 relation_exp:
 relation_exp_branches 
 { printf("relation_exp-> relation_exp_branches\n"); }
-| not relation_exp_branches { printf("relation_exp-> not relation_exp_branches\n"); }
+| not relation_exp_branches 
+{
+ printf("relation_exp-> not relation_exp_branches\n"); 
+ //add a not expression here
+}
 ;
 
 relation_exp_branches: 
@@ -485,7 +562,7 @@ EQ
 {
  printf("comp -> NEQ\n"); 
  m_compStack.push("!=");
-}
+ }
 | LT 
 {
  printf("comp -> LT\n"); 
@@ -534,21 +611,14 @@ OF {printf("of -> OF\n"); };
 if:
 IF {
     printf("if -> IF\n"); 
-    //add a label here
-    
-    m_labelStack.push(m_ln);
-    m_ln++;
+
     
 };
 
 then:
 THEN {
  printf("then -> THEN\n"); 
- //haveto do this here to put the jump in
- int l = m_labelStack.top();
- int p = m_predicates.top();
- m_predicates.pop();
- output << "\t?:=L" << l << ", p" << p << endl;
+
 };
 
 end_if:
@@ -556,64 +626,77 @@ END_IF {
     printf("end_if -> END_IF\n"); 
 
 
-    //so we have a label on the stack
-    
 };
 
 else:
 ELSE 
 {
  printf("else -> ELSE\n"); 
- int l = m_labelStack.top();
- m_labelStack.pop();
- m_ln++;
- //output << "\t:= L" << m_ln << endl;
- output << ": L" << l << endl;
 
- m_labelStack.push(m_ln);
 };
 
 while:
-WHILE {
-printf("while -> WHILE\n"); 
- m_labelStack.push(m_ln);
-    output << ": L" << m_ln << endl; 
+WHILE 
+{
+    m_labelStack.push(m_ln);
+    loopStack toPush;
+    toPush.label = m_ln;
+    toPush.type = "while";
+    m_loopStack.push(toPush);
+    m_loopStack.push(toPush);
+
+    output << ": L" << m_ln+1 << endl;
     m_ln++;
+    
+};
+
+dowhile:
+WHILE
+{
+    //if theres a do while loop we dont push while onto the stack again
 };
 
 do:
 DO {
  printf("do -> DO\n"); 
  m_labelStack.push(m_ln);
- output <<  ": L" << m_ln << endl; 
-    m_ln++;
-
+ loopStack toPush;
+ toPush.label = m_ln;
+ toPush.type = "do";
+ m_loopStack.push(toPush);
+ output << ": L" << m_ln << endl;
+ m_ln++;
 };
 
 begin_loop:
-BEGIN_LOOP {printf("begin_loop -> BEGINLOOP\n"); };  
+BEGIN_LOOP 
+{
+ printf("begin_loop -> BEGINLOOP\n"); 
+};  
 
 end_loop:
-END_LOOP {printf("end_loop -> ENDLOOP\n"); };
+END_LOOP 
+{
+printf("end_loop -> ENDLOOP\n"); 
+};
 
 continue:
 CONTINUE {
  printf("continue-> CONTINUE\n"); 
  //continue
  
- int l = m_labelStack.top();
- m_labelStack.pop();
- //THIS IS CURRENTLY BROEKN
- output << "\t:=L" << m_labelStack.top() << endl; 
- m_labelStack.push(l);
 
+ 
 };
 
 read:
 READ {printf("read -> READ\n"); };
 
 write:
-WRITE {printf("write -> WRITE\n"); };
+WRITE {
+printf("write -> WRITE\n"); 
+ output << "\t WRITE COMMAND" << endl;
+};
 
 true:
 TRUE {printf("true -> TRUE\n"); };
@@ -625,10 +708,17 @@ not:
 NOT {printf("not -> NOT\n"); };
 
 and:
-AND {printf("and -> AND\n"); };
+AND 
+{ 
+ printf("and -> AND\n"); 
+};
 
 or:
-OR {printf("or -> OR\n"); };
+OR 
+{
+ printf("or -> OR\n"); 
+
+};
 
 l_paren:
 L_PAREN { printf("l_paren -> L_PAREN\n"); };
