@@ -148,8 +148,9 @@ identifier identifier_loop colon array_dec integer
  }
  else
  {
-	 output << "\t . " << t << "spooky array" << endl;
-	 m_arrays.pop();
+ 	 m_arrays.pop();
+
+	 output << "\t .[] " <<  m_varStack.top() << ", " << t << endl;
  }
 }
 ;
