@@ -118,8 +118,6 @@
 init:
 program identifier semicolon block end_program 
 { 
-    printf ("program -> program identifier semicolon block end_program\n"); 
-    cout << endl;
     
     for(int i = 0 ; i < m_tn; i++)
 	{
@@ -130,29 +128,29 @@ program identifier semicolon block end_program
 	    cout << "\t . p" << i << endl;
 	}
 
-    cout << output.str();
+    cout << output.str() << endl;
 }
 |
 ;
 
 block:
-declaration semicolon declaration_loop begin_program statement_loop   {printf("block -> declaration_loop begin_program statement semicolon statement_loop\n");}
+declaration semicolon declaration_loop begin_program statement_loop   {}
 ;
 
 declaration_loop: 
-declaration semicolon declaration_loop  {printf("block -> declaration_loop semicolon declaration_loop\n");}
-| { printf("declaration_loop -> EMPTY\n"); }
+declaration semicolon declaration_loop  {}
+| {  }
 ;
 
 statement_loop: 
-statement semicolon statement_loop { printf("statement_loop -> statement semicolon statement_loop \n"); }
-| { printf("statement_loop -> EMPTY\n"); }
+statement semicolon statement_loop {  }
+| {  }
 ;
 
 declaration:
 identifier identifier_loop colon array_dec integer 
 {
- printf("declaration -> identifier identifier_loop colon array_dec\n");
+ 
  //declare shit here
  //what if we have an array?
  string t = m_varStack.top();
@@ -179,14 +177,14 @@ if(m_arrays.empty())
 
 }
 
-printf("identifier_loop -> comma identifier identifier_loop\n"); }
-| { printf("identifier_loop -> EMPTY\n"); }
+ }
+| {  }
 ;
 
 array_dec: 
 array l_paren number r_paren of 
 { 
- printf("array_dec -> array l_paren number r_paren of\n"); 
+  
  m_arrays.push(1);
 }
 | 
@@ -197,7 +195,7 @@ var assign expression
 {
     //icky
     stringstream out;
- printf("statement -> var assign expression\n"); 
+  
 
  //so right now, this only works for k := k
  //but what if we want k(t) := k? then we have issues
@@ -236,7 +234,7 @@ var assign expression
 | 
 if ifbool_exp then statement semicolon statement_else_loop end_if 
 {
- printf("statement -> if bool_exp then statement semicolon statement_else_loop endif\n"); 
+  
  //change of fuckin plans
  //dont need a label for IF 
  //so push a label on if and then that will be elses label
@@ -246,7 +244,7 @@ if ifbool_exp then statement semicolon statement_else_loop end_if
 while bool_exp begin_loop statement semicolon statement_loop end_loop 
 { 
     stringstream out;
-    printf("statement -> while bool_exp begin_loop statement semicolon statement_loop end_loop\n"); 
+     
  int l = m_labelStack.top();
  m_labelStack.pop();
  output << ": L" << l << endl;
@@ -254,7 +252,7 @@ while bool_exp begin_loop statement semicolon statement_loop end_loop
 | do begin_loop statement semicolon statement_loop end_loop dowhile dobool_exp 
 {
     //fuck me and fuck this
-    printf("statement -> do begin_loop statement_loop end_loop while bool_exp\n"); 
+     
 
     //reserve m_lns
     //so we know that do is the second thing on the stack
@@ -264,7 +262,7 @@ while bool_exp begin_loop statement semicolon statement_loop end_loop
 }
 | read var var_loop { 
 
-	printf("statement -> read var_loop\n"); 
+	 
  	if(strcmp($2, "array")){
 		output << "\t.< " << m_varStack.top() << endl;
 		m_varStack.pop();
@@ -272,14 +270,14 @@ while bool_exp begin_loop statement semicolon statement_loop end_loop
 	else{
 		string tmp = m_varStack.top();
 		m_varStack.pop();
-  		output << "\t.< [] " << m_varStack.top() << ", " << tmp << endl;
+  		output << "\t.[]< " << m_varStack.top() << ", " << tmp << endl;
 		m_varStack.pop();
 	}
 
 }
 | write var var_loop 
 {
- printf("statement -> write var_loop\n"); 
+  
 
  	if(strcmp($2, "array")){
 		output << "\t.> " << m_varStack.top() << endl;
@@ -288,14 +286,14 @@ while bool_exp begin_loop statement semicolon statement_loop end_loop
 	else{
 		string tmp = m_varStack.top();
 		m_varStack.pop();
-  		output << "\t.> [] " << m_varStack.top() << ", " << tmp << endl;
+  		output << "\t.[]> " << m_varStack.top() << ", " << tmp << endl;
 		m_varStack.pop();
 	}
 
 }
 | continue 
 {
- printf("statement -> continue \n"); 
+  
 }
 ;
 
@@ -323,14 +321,14 @@ comma var var_loop {
 
 
 
-printf("var_loop -> comma var var_loop \n"); }
-| { printf("var_loop -> EMPTY\n"); }
+ }
+| {  }
 ;
 
 statement_else_loop: 
 statement semicolon statement_else_loop 
 {
- printf("statement_else_loop -> statement semicolon statement_else_loop\n"); 
+  
  
 }
 | 
@@ -339,15 +337,15 @@ statement semicolon else statement semicolon statement_loop
     //IF WE GET AN ELSE STATEMENT
     //POP SO THAT IF JUMPTS TO THE ELSE
     //THEN ADD A JUMP TO ENDIF
- printf("statement_else_loop -> statement semicolon else statement semicolon statement_loop\n"); 
+  
 
 }
-| { printf("statement_else_loop -> empty\n"); } 
+| {  } 
 ;
 
 bool_exp: 
 relation_and_exp extra_or {
-printf("bool_exp -> relation_and_exp extra_or\n"); 
+ 
     int p = m_predicates.top();
     m_predicates.pop();
  int l = m_labelStack.top();
@@ -360,7 +358,7 @@ printf("bool_exp -> relation_and_exp extra_or\n");
 
 dobool_exp: 
 relation_and_exp extra_or {
-printf("bool_exp -> relation_and_exp extra_or\n"); 
+ 
     int p = m_predicates.top();
     m_predicates.pop();
  int l = m_labelStack.top();
@@ -387,7 +385,7 @@ extra_or:
 or relation_and_exp extra_or 
 {
     stringstream out;
- printf("extra_or -> or relation_and_exp extra_or\n"); 
+  
 //push ident to predicate stack
  int t = m_predicates.top();
  m_predicates.pop();
@@ -397,18 +395,18 @@ or relation_and_exp extra_or
  m_predicates.push(m_pn);
  m_pn++;
 }
-| {printf("bool_exp -> EMPTY\n"); }
+| { }
 ;
 
 relation_and_exp: 
-relation_exp extra_and{ printf("relation_and_exp -> relation_exp extra_and\n"); }
+relation_exp extra_and{  }
 ;
 	
 extra_and: 
 and relation_exp extra_and
 {
     stringstream out;
- printf("extra_and-> and relation_exp extra_and\n"); 
+  
 //push ident to predicate stack
  int t = m_predicates.top();
  m_predicates.pop();
@@ -418,15 +416,15 @@ and relation_exp extra_and
  m_predicates.push(m_pn);
  m_pn++;
 }
-| { printf("extra_and-> EMPTY \n"); }
+| {  }
 ;
 
 relation_exp:
 relation_exp_branches 
-{ printf("relation_exp-> relation_exp_branches\n"); }
+{  }
 | not relation_exp_branches 
 {
- printf("relation_exp-> not relation_exp_branches\n"); 
+  
  //add a not expression here
 }
 ;
@@ -435,7 +433,7 @@ relation_exp_branches:
 expression comp expression 
 { 
     stringstream out;
- printf("relation_exp_branches -> expression comp expression\n"); 
+  
  //actually eval
  string t = m_varStack.top();
  m_varStack.pop();
@@ -449,7 +447,7 @@ expression comp expression
 }
 | true 
 {
- printf("relation_exp_branches ->  true\n"); 
+  
  output << "\t" << "== p" << m_pn << ", 1, 1" << endl;
  m_predicates.push(m_pn);
  m_pn++;
@@ -457,19 +455,19 @@ expression comp expression
 }
 | false 
 { 
- printf("relation_exp_branches ->  false\n"); 
+  
  output << "\t" << "== p" << m_pn << ", 1, 0" << endl;
  m_predicates.push(m_pn);
  m_pn++;
 
 }
-| l_paren bool_exp r_paren { printf(" relation_exp_branches->  l_paren bool_exp r_paren\n"); }
+| l_paren bool_exp r_paren {  }
 ;
 
 expression:
 multiplicative_exp add_sub_terms  
 {
- printf("expression -> multiplicative_exp add_sub_terms\n"); 
+  
 
 }
 ;
@@ -488,7 +486,7 @@ add_sub_terms add multiplicative_exp
 |
 add_sub_terms sub multiplicative_exp  
 {
- printf("add_sub_terms -> add_sub_terms sub multiplicative_exp\n"); 
+  
  string t = m_varStack.top();
  m_varStack.pop();
  string t2 = m_varStack.top();
@@ -496,21 +494,21 @@ add_sub_terms sub multiplicative_exp
  doOperationT("-", t2, t);
 } 
 |  
-{ printf("add_sub_terms -> EMPTY\n"); } 
+{  } 
 ; 
 
 
 multiplicative_exp:
 term  mult_div_mod_terms 
 {
- printf("multiplicative_exp -> term  mult_div_mod_terms\n"); 
+  
 } 
 ; 
  
 mult_div_mod_terms:
 mult_div_mod_terms mult term 
 {
- printf("multiplicative_exp -> mult_div_mod_terms mult term \n"); 
+  
  string t = m_varStack.top();
  m_varStack.pop();
  string t2 = m_varStack.top();
@@ -520,7 +518,7 @@ mult_div_mod_terms mult term
 |
 mult_div_mod_terms div term 
 {
- printf("multiplicative_exp -> mult_div_mod_terms div term \n"); 
+  
  string t = m_varStack.top();
  m_varStack.pop();
  string t2 = m_varStack.top();
@@ -530,7 +528,7 @@ mult_div_mod_terms div term
 |
 mult_div_mod_terms mod term 
 {
- printf("multiplicative_exp -> mult_div_mod_terms mod term \n"); 
+  
  string t = m_varStack.top();
  m_varStack.pop();
  string t2 = m_varStack.top();
@@ -539,7 +537,7 @@ mult_div_mod_terms mod term
 } 
 | 
 {
- printf("multiplicative_exp -> EMPTY \n"); 
+  
 } 
 ;
 
@@ -548,19 +546,19 @@ mult_div_mod_terms mod term
 term: 
 term_branches  
 {
- printf("term -> term_branches \n"); 
+  
 
 } 
 | 
 sub term_branches 
 {
- printf("term -> sub term_branches \n"); 
+  
 } 
 
 term_branches: 
 var 
 {
- printf("term_branches -> var \n"); 
+  
  if(!strcmp($1, "array"))
      {
 	 string t = m_varStack.top();
@@ -587,19 +585,19 @@ var
 | 
 number 
 {
- printf("term_branches -> number \n"); 
+  
 } 
 | 
 l_paren expression r_paren 
 {
- printf("term_branches -> l_paren expression r_paren \n"); 
+  
 } 
 ;
 
 var: 
 identifier add_exp 
 {
- printf("var -> identifier add_exp \n"); 
+  
  //unroll array if we have one
   
  
@@ -610,7 +608,7 @@ identifier add_exp
 add_exp:
 l_paren expression r_paren 
 {
- printf("add_exp -> l_paren expression r_paren\n"); 
+  
  //actually got an index so we report it
  m_arrays.push(1);
  $$ = "array";
@@ -624,77 +622,77 @@ l_paren expression r_paren
 comp:
 EQ 
 {
- printf("comp -> EQ\n"); 
+  
  //why push a comp onto a stack?
  //because we need this state of the recursion to 'return' something up
  m_compStack.push("==");
 }
 | NEQ 
 {
- printf("comp -> NEQ\n"); 
+  
  m_compStack.push("!=");
  }
 | LT 
 {
- printf("comp -> LT\n"); 
+  
  m_compStack.push("<");
 }
 | GT 
 {
- printf("comp -> GT\n"); 
+  
  m_compStack.push(">");
 }
 | LTE 
 {
- printf("comp -> LTE\n"); 
+  
  m_compStack.push("<=");
 }
 | GTE 
 {
- printf("comp -> GTE\n"); 
+  
  m_compStack.push(">=");
 }
 ;
                       
 program:
 PROGRAM { 
-    printf("program -> PROGRAM\n"); 
+     
 };
 
 begin_program:
 BEGIN_PROGRAM {
-    printf("begin_program -> BEGINPROGRAM\n"); 
+     
     output << ": START" << endl;
 };
 
 end_program:
-END_PROGRAM {printf("end_program -> ENDPROGRAM\n"); };
+END_PROGRAM { };
 
 integer:
-INTEGER { printf("integer -> INTEGER\n"); };
+INTEGER {  };
 
 array:
-ARRAY { printf("array -> ARRAY\n"); };
+ARRAY {  };
 
 of:
-OF {printf("of -> OF\n"); };
+OF { };
 
 if:
 IF {
-    printf("if -> IF\n"); 
+     
     
     
 };
 
 then:
 THEN {
- printf("then -> THEN\n"); 
+  
 
 };
 
 end_if:
 END_IF {
- printf("end_if -> END_IF\n"); 
+  
  int l = m_labelStack.top();
  m_labelStack.pop();
  output << ": L" << l << endl;
@@ -737,97 +735,97 @@ DO {
 begin_loop:
 BEGIN_LOOP 
 {
- printf("begin_loop -> BEGINLOOP\n"); 
+  
 };  
 
 end_loop:
 END_LOOP 
 {
-printf("end_loop -> ENDLOOP\n"); 
+ 
 };
 
 continue:
 CONTINUE {
- printf("continue-> CONTINUE\n"); 
+  
  //continue
- output << "\tCONTINUE" << endl;
+ //output << "\tCONTINUE" << endl;
 
  
 };
 
 read:
-READ {printf("read -> READ\n"); 
+READ { 
 readflag = true;
 };
 
 write:
 WRITE {
-printf("write -> WRITE\n"); 
+ 
 readflag = false;
 };
 
 true:
-TRUE {printf("true -> TRUE\n"); };
+TRUE { };
 
 false:
-FALSE {printf("false -> FALSE\n"); };
+FALSE { };
 
 not:
-NOT {printf("not -> NOT\n"); };
+NOT { };
 
 and:
 AND 
 { 
- printf("and -> AND\n"); 
+  
 };
 
 or:
 OR 
 {
- printf("or -> OR\n"); 
+  
 
 };
 
 l_paren:
-L_PAREN { printf("l_paren -> L_PAREN\n"); };
+L_PAREN {  };
 
 r_paren:
-R_PAREN { printf("r_paren -> R_PAREN\n"); };
+R_PAREN {  };
 
 sub:
-SUB {printf("false -> SUB\n"); };
+SUB { };
 
 mult:
-MULT {printf("false -> MULT\n"); };
+MULT { };
 
 div:
-DIV {printf("false -> DIV\n"); };
+DIV { };
 
 mod:
-MOD {printf("false -> MOD\n"); };
+MOD { };
 
 add:
-ADD {printf("false -> ADD\n"); };
+ADD { };
 
 assign:
 ASSIGN 
 {
- printf("assign -> ASSIGN\n"); 
+  
 
 };
 
 colon:
-COLON { printf("colon -> COLON\n"); };
+COLON {  };
 
 semicolon:
-SEMICOLON { printf("semicolon -> SEMICOLON\n"); };
+SEMICOLON {  };
 
 comma:
-COMMA {printf("comma -> COMMA\n"); };
+COMMA { };
 
 number:
 NUMBER {
- printf("number -> NUMBER(%s)\n", yytext); 
+  
  //we hit the bottom of the recursion! yay!
  m_varStack.push(string(yytext));
 };
@@ -835,7 +833,7 @@ NUMBER {
 identifier:
 IDENT {
 
- printf("identifier -> IDENT(%s)\n", yytext); 
+  
  //check if the test exists befoehand
  string s = yytext;
 
@@ -848,7 +846,7 @@ int main(int argc, char **argv) {
    if (argc > 1) {
       yyin = fopen(argv[1], "r");
       if (yyin == NULL){
-         printf("syntax: %s filename\n", argv[0]);
+         
       }//end if
    }//end if
    yyparse(); // Calls yylex() for tokens.
@@ -856,7 +854,7 @@ int main(int argc, char **argv) {
 }
 
 void yyerror(const char *msg) {
-   printf("** Line %d, position %d: %s\n", currLine, currPos, msg);
+   
 }
 
 void doOperationT(string op, string operand2, string operand3)
