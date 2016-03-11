@@ -153,7 +153,16 @@ identifier identifier_loop colon array_dec integer
 ;
 
 identifier_loop: 
-comma identifier identifier_loop { printf("identifier_loop -> comma identifier identifier_loop\n"); }
+comma identifier identifier_loop { 
+	printf("identifier_loop -> comma identifier identifier_loop\n"); 
+ 	string t = m_varStack.top();
+ 	m_varStack.pop();
+ 	if(m_arrays.empty())
+    {
+	  output << "\t . " << t << endl;
+    }
+
+}
 | { printf("identifier_loop -> EMPTY\n"); }
 ;
 
@@ -229,8 +238,37 @@ while bool_exp begin_loop statement semicolon statement_loop end_loop { printf("
  m_predicates.pop();
  output << "\t?:= L"<<l<< ", " << "p" << p << endl;
 }
-| read var var_loop { printf("statement -> read var_loop\n"); }
-| write var var_loop { printf("statement -> write var_loop\n"); }
+| read var var_loop { 
+	printf("statement -> read var_loop\n"); 
+
+ 	if(!strcmp($2, "array")){
+		output << "\t.< " << m_varStack.top() << endl;
+		m_varStack.pop();
+	}
+	else{
+		string tmp = m_varStack.top();
+		m_varStack.pop();
+  		output << "\t.< []" << m_varStack.top() << endl;
+		m_varStack.pop();
+
+	}
+}
+| write var var_loop { printf("statement -> write var_loop\n"); 
+
+ 	if(!strcmp($2, "array")){
+		output << "\t.> " << m_varStack.top() << endl;
+		m_varStack.pop();
+	}
+	else{
+		string tmp = m_varStack.top();
+		m_varStack.pop();
+  		output << "\t.> []" << m_varStack.top() << endl;
+		m_varStack.pop();
+
+	}
+	
+
+}
 | continue { printf("statement -> continue \n"); }
 ;
 
