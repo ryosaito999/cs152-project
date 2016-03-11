@@ -42,6 +42,8 @@
  vector<string> m_finalDecs;
  void doOperationT(string op,string operand2, string operand3);
 
+ bool readflag;
+
  typedef struct  linkedListNode                                                                                                                                                                                                                                                   
  {                                                                                                                                                                                                                                                                                
      linkedListNode* next;                                                                                                                                                                                                                                                        
@@ -156,19 +158,28 @@ identifier identifier_loop colon array_dec integer
  string t = m_varStack.top();
  m_varStack.pop();
  if(m_arrays.empty())
-     {
+ {
 	 output << "\t . " << t << endl;
-     }
+ }
  else
-     {
-	 output << "\t . " << t << "spooky array" << endl;
-	 m_arrays.pop();
-     }
+ {
+	 output << "\t .[] " << m_varStack.top()  << ", " << t <<  endl;
+  	 m_arrays.pop();
+
+ }
 }
 ;
 
 identifier_loop: 
-comma identifier identifier_loop { printf("identifier_loop -> comma identifier identifier_loop\n"); }
+comma identifier identifier_loop { 
+if(m_arrays.empty())
+{
+	 output << "\t . " << m_varStack.top() << endl;
+	  m_varStack.pop();
+
+}
+
+printf("identifier_loop -> comma identifier identifier_loop\n"); }
 | { printf("identifier_loop -> EMPTY\n"); }
 ;
 
@@ -251,11 +262,36 @@ while bool_exp begin_loop statement semicolon statement_loop end_loop
 
 
 }
-| read var var_loop { printf("statement -> read var_loop\n"); }
+| read var var_loop { 
+
+	printf("statement -> read var_loop\n"); 
+ 	if(strcmp($2, "array")){
+		output << "\t.< " << m_varStack.top() << endl;
+		m_varStack.pop();
+	}
+	else{
+		string tmp = m_varStack.top();
+		m_varStack.pop();
+  		output << "\t.< [] " << m_varStack.top() << ", " << tmp << endl;
+		m_varStack.pop();
+	}
+
+}
 | write var var_loop 
 {
  printf("statement -> write var_loop\n"); 
- //pop off
+
+ 	if(strcmp($2, "array")){
+		output << "\t.> " << m_varStack.top() << endl;
+		m_varStack.pop();
+	}
+	else{
+		string tmp = m_varStack.top();
+		m_varStack.pop();
+  		output << "\t.> [] " << m_varStack.top() << ", " << tmp << endl;
+		m_varStack.pop();
+	}
+
 }
 | continue 
 {
@@ -264,7 +300,30 @@ while bool_exp begin_loop statement semicolon statement_loop end_loop
 ;
 
 var_loop: 
-comma var var_loop { printf("var_loop -> comma var var_loop \n"); }
+comma var var_loop { 
+	string prefix;
+	if(readflag){
+		prefix = "\t.< ";
+	}
+	else{
+		prefix = "\t.> ";
+	}
+
+ 	if(strcmp($2, "array")){
+		output << prefix << m_varStack.top() << endl;
+		m_varStack.pop();
+
+	}
+	else{
+		string tmp = m_varStack.top();
+		m_varStack.pop();
+		output << prefix  << " [] " << m_varStack.top() << "," << tmp << endl;
+		m_varStack.pop();
+	}
+
+
+
+printf("var_loop -> comma var var_loop \n"); }
 | { printf("var_loop -> EMPTY\n"); }
 ;
 
@@ -697,12 +756,14 @@ CONTINUE {
 };
 
 read:
-READ {printf("read -> READ\n"); };
+READ {printf("read -> READ\n"); 
+readflag = true;
+};
 
 write:
 WRITE {
 printf("write -> WRITE\n"); 
- output << "\t WRITE COMMAND" << endl;
+readflag = false;
 };
 
 true:
