@@ -185,6 +185,7 @@ statement:
 var assign expression 
 {
     //icky
+    stringstream out;
  printf("statement -> var assign expression\n"); 
 
  //so right now, this only works for k := k
@@ -233,19 +234,13 @@ if ifbool_exp then statement semicolon statement_else_loop end_if
 | 
 while bool_exp begin_loop statement semicolon statement_loop end_loop 
 { 
+    stringstream out;
     printf("statement -> while bool_exp begin_loop statement semicolon statement_loop end_loop\n"); 
-    if(!m_loopStack.empty())
-	{
-		    loopStack get = m_loopStack.top();
-		    m_loopStack.pop();
-		    int label = get.label;
-
-		    output << "\t:= L" << m_ln <<endl;
-		    output << ": L" << label <<endl;
-		    m_ln++;
-	}
+ int l = m_labelStack.top();
+ m_labelStack.pop();
+ output << ": L" << l << endl;
 }
-| do begin_loop statement semicolon statement_loop end_loop dowhile bool_exp 
+| do begin_loop statement semicolon statement_loop end_loop dowhile dobool_exp 
 {
     //fuck me and fuck this
     printf("statement -> do begin_loop statement_loop end_loop while bool_exp\n"); 
@@ -294,23 +289,37 @@ statement semicolon else statement semicolon statement_loop
 bool_exp: 
 relation_and_exp extra_or {
 printf("bool_exp -> relation_and_exp extra_or\n"); 
-		    //we have a do loop on the stack so pop and point back to it
-///so this will always be an IF or a WHILE loop.
     int p = m_predicates.top();
     m_predicates.pop();
-    if(!m_loopStack.empty())
-	{
-		    loopStack get = m_loopStack.top();
-		    m_loopStack.pop();
-		    int label = get.label;
+ int l = m_labelStack.top();
+ m_labelStack.pop();
+ output << "\t?:= L" << m_ln << ", p" << p << endl;
+ m_labelStack.push(m_ln);
+ m_ln++;
+}
+;
 
-		    output << "\t?:= L" << label << ", p" << p <<  endl;
-	}
+dobool_exp: 
+relation_and_exp extra_or {
+printf("bool_exp -> relation_and_exp extra_or\n"); 
+    int p = m_predicates.top();
+    m_predicates.pop();
+ int l = m_labelStack.top();
+ m_labelStack.pop();
+ output << "\t?:= L" << l << ", p" << p << endl;
 }
 ;
 
 ifbool_exp: 
-relation_and_exp extra_or {
+relation_and_exp extra_or 
+{
+    stringstream out;
+    //jump to the current thing in the stack
+    m_labelStack.push(m_ln);
+    int p = m_predicates.top();
+    m_predicates.pop();
+    output << "\t?:= L" <<m_ln<< ", p" << p << endl;
+    m_ln++;
 
 }
 ;
@@ -318,6 +327,7 @@ relation_and_exp extra_or {
 extra_or: 
 or relation_and_exp extra_or 
 {
+    stringstream out;
  printf("extra_or -> or relation_and_exp extra_or\n"); 
 //push ident to predicate stack
  int t = m_predicates.top();
@@ -338,6 +348,7 @@ relation_exp extra_and{ printf("relation_and_exp -> relation_exp extra_and\n"); 
 extra_and: 
 and relation_exp extra_and
 {
+    stringstream out;
  printf("extra_and-> and relation_exp extra_and\n"); 
 //push ident to predicate stack
  int t = m_predicates.top();
@@ -364,6 +375,7 @@ relation_exp_branches
 relation_exp_branches: 
 expression comp expression 
 { 
+    stringstream out;
  printf("relation_exp_branches -> expression comp expression\n"); 
  //actually eval
  string t = m_varStack.top();
@@ -611,7 +623,7 @@ OF {printf("of -> OF\n"); };
 if:
 IF {
     printf("if -> IF\n"); 
-
+    
     
 };
 
@@ -623,49 +635,44 @@ THEN {
 
 end_if:
 END_IF {
-    printf("end_if -> END_IF\n"); 
-
-
+ printf("end_if -> END_IF\n"); 
+ int l = m_labelStack.top();
+ m_labelStack.pop();
+ output << ": L" << l << endl;
 };
 
 else:
 ELSE 
 {
- printf("else -> ELSE\n"); 
-
+ int l = m_labelStack.top();
+ m_labelStack.pop();
+ output << ": L" << l << endl;
+ m_labelStack.push(m_ln);
+ m_ln++;
 };
 
 while:
 WHILE 
 {
+    output << ": L" <<m_ln<<endl;
     m_labelStack.push(m_ln);
-    loopStack toPush;
-    toPush.label = m_ln;
-    toPush.type = "while";
-    m_loopStack.push(toPush);
-    m_loopStack.push(toPush);
-
-    output << ": L" << m_ln+1 << endl;
-    m_ln++;
     
+    m_ln++;  
+
 };
 
 dowhile:
 WHILE
 {
     //if theres a do while loop we dont push while onto the stack again
+
 };
 
 do:
 DO {
- printf("do -> DO\n"); 
- m_labelStack.push(m_ln);
- loopStack toPush;
- toPush.label = m_ln;
- toPush.type = "do";
- m_loopStack.push(toPush);
- output << ": L" << m_ln << endl;
- m_ln++;
+    output << ": L" <<m_ln<<endl;
+    m_labelStack.push(m_ln);
+    m_ln++;
 };
 
 begin_loop:
@@ -684,7 +691,7 @@ continue:
 CONTINUE {
  printf("continue-> CONTINUE\n"); 
  //continue
- 
+ output << "\tCONTINUE" << endl;
 
  
 };
