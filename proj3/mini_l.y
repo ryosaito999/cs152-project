@@ -40,6 +40,8 @@
  stack<int> m_arrays;
  vector<string> m_finalDecs;
  void doOperationT(string op,string operand2, string operand3);
+
+ bool readflag;
 %}
 %error-verbose
 %union{
@@ -242,29 +244,27 @@ while bool_exp begin_loop statement semicolon statement_loop end_loop { printf("
 }
 | read var var_loop { 
 	printf("statement -> read var_loop\n"); 
-
- 	if(!strcmp($2, "array")){
+ 	if(strcmp($2, "array")){
 		output << "\t.< " << m_varStack.top() << endl;
 		m_varStack.pop();
 	}
 	else{
 		string tmp = m_varStack.top();
 		m_varStack.pop();
-  		output << "\t.< []" << m_varStack.top() << endl;
+  		output << "\t.< [] " << m_varStack.top() << "," << tmp << endl;
 		m_varStack.pop();
-
 	}
 }
 | write var var_loop { printf("statement -> write var_loop\n"); 
 
- 	if(!strcmp($2, "array")){
+ 	if(strcmp($2, "array")){
 		output << "\t.> " << m_varStack.top() << endl;
 		m_varStack.pop();
 	}
 	else{
 		string tmp = m_varStack.top();
 		m_varStack.pop();
-  		output << "\t.> []" << m_varStack.top() << endl;
+  		output << "\t.> [] " <<  m_varStack.top() << "," << tmp <<  endl;
 		m_varStack.pop();
 
 	}
@@ -275,7 +275,31 @@ while bool_exp begin_loop statement semicolon statement_loop end_loop { printf("
 ;
 
 var_loop: 
-comma var var_loop { printf("var_loop -> comma var var_loop \n"); }
+comma var var_loop { 
+printf("var_loop -> comma var var_loop \n"); 
+
+	string prefix;
+	if( readflag){
+		prefix = "\t.< ";
+	}
+	else{
+		prefix = "\t.> ";
+	}
+
+	if(strcmp($2, "array")){
+		output << prefix << m_varStack.top() << endl;
+		m_varStack.pop();
+	}
+
+	else{
+		string tmp = m_varStack.top();
+		m_varStack.pop();
+  		output << prefix << " [] " << m_varStack.top() << "," << tmp << endl;
+		m_varStack.pop();
+	}
+
+
+}
 | { printf("var_loop -> EMPTY\n"); }
 ;
 
@@ -650,10 +674,15 @@ CONTINUE {
 };
 
 read:
-READ {printf("read -> READ\n"); };
+READ {printf("read -> READ\n");
+readflag = true;
+};
 
 write:
-WRITE {printf("write -> WRITE\n"); };
+WRITE {printf("write -> WRITE\n"); 
+readflag = false;
+
+};
 
 true:
 TRUE {printf("true -> TRUE\n"); };
