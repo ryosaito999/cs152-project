@@ -249,9 +249,7 @@ while bool_exp begin_loop statement semicolon statement_loop end_loop
 }
 | do begin_loop statement semicolon statement_loop end_loop dowhile dobool_exp 
 {
-    //fuck me and fuck this
-     
-
+    //fuck me and fuck this     
     //reserve m_lns
     //so we know that do is the second thing on the stack
 
@@ -737,6 +735,7 @@ WHILE
 do:
 DO {
     output << ": L" <<m_ln<<endl;
+    m_loopStack.push(m_ln);
     m_labelStack.push(m_ln);
     m_ln++;
 };
