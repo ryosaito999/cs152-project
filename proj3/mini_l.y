@@ -31,7 +31,6 @@
  //but we need to keep track of the changes between recusrive stacks since we eval exp -> 5 + 5
  //so we need to throw them into fucking stacks
  stack<int> m_labelStack;
- //stack<int> m_loopStack;
  int m_ln = 0;
  stack<string> m_varStack;
  stack<string> m_compStack;
@@ -43,6 +42,9 @@
  void doOperationT(string op,string operand2, string operand3);
 
  bool readflag;
+ string loopLabel;
+ stack<int> m_loopStack;
+
 
  typedef struct  linkedListNode                                                                                                                                                                                                                                                   
  {                                                                                                                                                                                                                                                                                
@@ -50,13 +52,6 @@
      char val[256];                                                                                                                                                                                                                                                               
  }Node;   
 
- typedef struct loopStackStruct
- {
-     int label;
-     string type;
- }loopStack;
-
- stack<loopStackStruct> m_loopStack;
 %}
 %error-verbose
 %union{
@@ -243,11 +238,14 @@ if ifbool_exp then statement semicolon statement_else_loop end_if
 | 
 while bool_exp begin_loop statement semicolon statement_loop end_loop 
 { 
-    stringstream out;
-     
+ stringstream out;    
  int l = m_labelStack.top();
  m_labelStack.pop();
+ output << "\t:= L" << m_loopStack.top() << endl;
  output << ": L" << l << endl;
+ m_loopStack.pop();
+
+
 }
 | do begin_loop statement semicolon statement_loop end_loop dowhile dobool_exp 
 {
@@ -293,7 +291,7 @@ while bool_exp begin_loop statement semicolon statement_loop end_loop
 }
 | continue 
 {
-  
+ output << "\t:= L" << m_loopStack.top() << endl;
 }
 ;
 
@@ -350,7 +348,9 @@ relation_and_exp extra_or {
     m_predicates.pop();
  int l = m_labelStack.top();
  m_labelStack.pop();
+ output << "\t! p" << p << ", p" << p << endl;
  output << "\t?:= L" << m_ln << ", p" << p << endl;
+
  m_labelStack.push(m_ln);
  m_ln++;
 }
@@ -359,11 +359,14 @@ relation_and_exp extra_or {
 dobool_exp: 
 relation_and_exp extra_or {
  
-    int p = m_predicates.top();
-    m_predicates.pop();
+ int p = m_predicates.top();
+ m_predicates.pop();
  int l = m_labelStack.top();
  m_labelStack.pop();
+ 
+ output << "\t! p" << p << ", p" << p << endl;
  output << "\t?:= L" << l << ", p" << p << endl;
+
 }
 ;
 
@@ -375,7 +378,9 @@ relation_and_exp extra_or
     m_labelStack.push(m_ln);
     int p = m_predicates.top();
     m_predicates.pop();
+    output << "\t! p" << p << ", p" << p << endl;
     output << "\t?:= L" <<m_ln<< ", p" << p << endl;
+
     m_ln++;
 
 }
@@ -711,9 +716,13 @@ ELSE
 while:
 WHILE 
 {
+	stringstream ss;
+	ss << m_ln;
+	loopLabel = "\t:= L" + ss.str();
     output << ": L" <<m_ln<<endl;
     m_labelStack.push(m_ln);
-    
+    m_loopStack.push(m_ln);
+
     m_ln++;  
 
 };
@@ -735,7 +744,7 @@ DO {
 begin_loop:
 BEGIN_LOOP 
 {
-  
+ 
 };  
 
 end_loop:
