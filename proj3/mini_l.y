@@ -362,7 +362,7 @@ relation_and_exp extra_or {
  int l = m_labelStack.top();
  m_labelStack.pop();
  
- output << "\t! p" << p << ", p" << p << endl;
+ //output << "\t! p" << p << ", p" << p << endl;
  output << "\t?:= L" << l << ", p" << p << endl;
 
 }
