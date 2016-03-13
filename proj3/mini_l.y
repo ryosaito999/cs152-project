@@ -129,7 +129,7 @@
 %%
 
 init:
-program identifier semicolon block end_program 
+program identifier_dec semicolon block end_program 
 { 
     if(!errorFlag)
 	{
@@ -177,21 +177,11 @@ identifier_dec identifier_loop colon array_dec integer
  if(m_arrays.empty())
  {
 	 output << "\t . " << t << endl;
-	 m_declarations[m_declarations.size()-1].type ="var";
+
  }
  else
  {
 	 output << "\t .[] " << m_varStack.top()  << ", " << t <<  endl;
-	 m_declarations[m_declarations.size()-1].type ="array";
-  	 m_arrays.pop();
-	 //if we have multiple vars on the same stack
-	 int i = 2;
-	 while(!m_arrays.empty())
-	     {
-		 m_arrays.pop();
-		 m_declarations[m_declarations.size()-i].type ="array";
-		 i++;
-	     }
 
  }
 }
@@ -215,7 +205,6 @@ IDENT {
 
   
  //check if the test exists befoehand
-
  string s = yytext;
  if(findDec("_" + s))
      {
@@ -233,7 +222,7 @@ IDENT {
 array_dec: 
 array l_paren number r_paren of 
 { 
- 
+   m_declarations[m_declarations.size()-1].type="array";
  m_arrays.push(1);
 }
 | array l_paren sub number r_paren of 
@@ -288,7 +277,8 @@ var assign expression
 	 int i = getDec(t3);
 	 if(m_declarations[i].type == "var")
 	     {
-		 cout << "Cannot use array as an integer type at line " << currLine << endl;
+		 cout << t3;
+		 cout << "Cannot use integer as an array type at line " << currLine << endl;
 		 errorFlag = true;
 	     }
 	 m_varStack.pop();
@@ -652,12 +642,20 @@ var
 	 string t2 = m_varStack.top();
 	 m_varStack.pop();
 
-	 int i = findDec(t2);
+    for(int i = 0; i < m_declarations.size(); i++)
+	{
+	    if(m_declarations[i].name==t2)
+		{
+		    //cout << m_declarations[i].name << " == " <<i << endl;
 	 if(m_declarations[i].type == "var")
 	     {
+
 		 cout << "Cannot use variable as array type at line " << currLine << endl;
 		 errorFlag = true;
 	     }
+		}
+	}
+
 
 	 //need to check if we are doing a []= or a =[]
 	 //this right now only works if array is on the left
@@ -704,11 +702,23 @@ l_paren expression r_paren
   
  //actually got an index so we report it
  m_arrays.push(1);
+
  $$ = "array";
 }
 |
 {
-    $$="var";
+    for(int i = 0; i < m_declarations.size(); i++)
+	{
+	    if(m_declarations[i].name==m_varStack.top())
+		{
+	 if(m_declarations[i].type == "array")
+	     {
+
+		 cout << "Cannot use variable as array type at line " << currLine << endl;
+		 errorFlag = true;
+	     }
+		}
+	}    $$="var";
 }
 ;
 
@@ -995,8 +1005,11 @@ int getDec(string dec)
 {
     for(int i = 0; i < m_declarations.size(); i++)
 	{
-	    if(m_declarations[i].name == dec)
+	    if(m_declarations[i].name==dec)
+		{
+		    //cout << m_declarations[i].name << " == " <<i << endl;
 		return i;
+		}
 	}
     return -1;
 }
