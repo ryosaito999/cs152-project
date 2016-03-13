@@ -41,21 +41,27 @@
  stack<string> m_compStack;
  vector<string> m_variables;
  stringstream output;
- vector<string> m_declarations;
+ struct identStruct
+ {
+     string name;
+     string type;
+ };
+ vector<identStruct> m_declarations;
  vector<string> m_arraydecs;
 
  stack<int> m_arrays;
 
  vector<string> m_finalDecs;
  void doOperationT(string op,string operand2, string operand3);
- bool isDeclared(string s);
+
 
  bool readflag;
  string loopLabel;
  stack<int> m_loopStack;
 
  bool errorFlag = false;
-
+ bool findDec(string dec);
+ int getDec(string dec);
  typedef struct  linkedListNode                                                                                                                                                                                                                                                   
  {                                                                                                                                                                                                                                                                                
      linkedListNode* next;                                                                                                                                                                                                                                                        
@@ -125,17 +131,23 @@
 init:
 program identifier semicolon block end_program 
 { 
-    
-    for(int i = 0 ; i < m_tn; i++)
+    if(!errorFlag)
 	{
-	    cout << "\t . t" << i << endl;
-	}
-    for(int i = 0 ; i < m_pn; i++)
-	{
-	    cout << "\t . p" << i << endl;
-	}
+	    for(int i = 0 ; i < m_tn; i++)
+		{
+		    cout << "\t . t" << i << endl;
+		}
+	    for(int i = 0 ; i < m_pn; i++)
+		{
+		    cout << "\t . p" << i << endl;
+		}
 
-    cout << output.str() << endl;
+	    cout << output.str() << endl;
+	}
+    else
+	{
+	    cout << "Errors were found" << endl;
+	}
 }
 |
 ;
@@ -155,7 +167,7 @@ statement semicolon statement_loop {  }
 ;
 
 declaration:
-identifier identifier_loop colon array_dec integer 
+identifier_dec identifier_loop colon array_dec integer 
 {
  
  //declare shit here
@@ -165,18 +177,28 @@ identifier identifier_loop colon array_dec integer
  if(m_arrays.empty())
  {
 	 output << "\t . " << t << endl;
+	 m_declarations[m_declarations.size()-1].type ="var";
  }
  else
  {
 	 output << "\t .[] " << m_varStack.top()  << ", " << t <<  endl;
+	 m_declarations[m_declarations.size()-1].type ="array";
   	 m_arrays.pop();
+	 //if we have multiple vars on the same stack
+	 int i = 2;
+	 while(!m_arrays.empty())
+	     {
+		 m_arrays.pop();
+		 m_declarations[m_declarations.size()-i].type ="array";
+		 i++;
+	     }
 
  }
 }
 ;
 
 identifier_loop: 
-comma identifier identifier_loop { 
+comma identifier_dec identifier_loop { 
 if(m_arrays.empty())
 {
 	 output << "\t . " << m_varStack.top() << endl;
@@ -188,6 +210,26 @@ if(m_arrays.empty())
 | {  }
 ;
 
+identifier_dec:
+IDENT {
+
+  
+ //check if the test exists befoehand
+
+ string s = yytext;
+ if(findDec("_" + s))
+     {
+	 cout << "Redeclaration of " << s << " at line " << currLine << endl;
+	 errorFlag=true;
+	 
+     }
+ struct identStruct t;
+ t.type="var";
+ t.name = "_" + string(yytext);
+ m_declarations.push_back(t);
+ m_varStack.push("_"+ string(yytext));
+};      
+
 array_dec: 
 array l_paren number r_paren of 
 { 
@@ -196,7 +238,8 @@ array l_paren number r_paren of
 }
 | array l_paren sub number r_paren of 
 {
-    cout << "ERROR" << endl;
+    cout << "Cannot initialize a negative array at line " << currLine << endl;
+    errorFlag = true;
 }
 |
 ;
@@ -219,7 +262,14 @@ var assign expression
  m_varStack.pop();
  if(strcmp($1,"array"))
      {
+	 //do some error checkin if we use an int as an array
 
+	 int i = getDec(t2);
+	 if(m_declarations[i].type == "array")
+	     {
+		 cout << "Cannot use array as an integer type at line " << currLine << endl;
+		 errorFlag = true;
+	     }
 	 output << "\t" << "= " << t2 << ", " << t << endl;
 	 stringstream ss;
 	 ss << m_tn;
@@ -230,8 +280,17 @@ var assign expression
      {
 	 //need to check if we are doing a []= or a =[]
 	 //this right now only works if array is on the left
+
+
+
 	 std::stringstream revout;
 	 string t3 = m_varStack.top();
+	 int i = getDec(t3);
+	 if(m_declarations[i].type == "var")
+	     {
+		 cout << "Cannot use array as an integer type at line " << currLine << endl;
+		 errorFlag = true;
+	     }
 	 m_varStack.pop();
 	 revout << m_tn;
 	 output << "\t[]= " << t3 << ", " << t2 << ", "
@@ -305,7 +364,16 @@ while bool_exp begin_loop statement semicolon statement_loop end_loop
 }
 | continue 
 {
+    if(!m_loopStack.empty())
+	{
  output << "\t:= L" << m_loopStack.top() << endl;
+	}
+    else
+	{
+	    cout << "Continue declared outside of loop at line " << currLine << endl;
+	    errorFlag = true;
+	}
+
 }
 ;
 
@@ -584,6 +652,13 @@ var
 	 string t2 = m_varStack.top();
 	 m_varStack.pop();
 
+	 int i = findDec(t2);
+	 if(m_declarations[i].type == "var")
+	     {
+		 cout << "Cannot use variable as array type at line " << currLine << endl;
+		 errorFlag = true;
+	     }
+
 	 //need to check if we are doing a []= or a =[]
 	 //this right now only works if array is on the left
 	 std::stringstream revout;
@@ -772,7 +847,7 @@ CONTINUE {
   
  //continue
  //output << "\tCONTINUE" << endl;
-
+    
  
 };
 
@@ -858,9 +933,13 @@ IDENT {
 
   
  //check if the test exists befoehand
- string s = yytext;
 
- m_declarations.push_back(string(yytext));
+ string s = yytext;
+ if(!findDec("_" + s))
+     {
+	 cout << "Could not find identifier " << s << " at line " << currLine << endl;
+	 errorFlag = true;
+     }
  m_varStack.push("_"+ string(yytext));
 };      
 
@@ -900,13 +979,24 @@ void doOperationP(string op, string operand2, string operand3)
     m_pn++;
 }
 
-bool isDeclared(string s){
-    for(int i= 0; i< m_declarations.size(); ++i){
-        if( s.compare(m_declarations[i]) == 0){
-            return true;
-        }
-    }
+
+bool findDec(string dec)
+{
+    for(int i = 0; i < m_declarations.size(); i++)
+	{
+	    if(m_declarations[i].name == dec)
+		return true;
+	}
     return false;
 }
 
 
+int getDec(string dec)
+{
+    for(int i = 0; i < m_declarations.size(); i++)
+	{
+	    if(m_declarations[i].name == dec)
+		return i;
+	}
+    return -1;
+}
