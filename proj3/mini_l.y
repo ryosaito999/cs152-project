@@ -41,11 +41,14 @@
  stack<string> m_compStack;
  vector<string> m_variables;
  stringstream output;
- stack<string> m_declarations;
+ vector<string> m_declarations;
+ vector<string> m_arraydecs;
+
  stack<int> m_arrays;
 
  vector<string> m_finalDecs;
  void doOperationT(string op,string operand2, string operand3);
+ bool isDeclared(string s);
 
  bool readflag;
  string loopLabel;
@@ -115,6 +118,8 @@
 
 %type<string_val> add_exp
 %type<string_val> var
+%type<int_val>number
+
 %%
 
 init:
@@ -186,10 +191,14 @@ if(m_arrays.empty())
 array_dec: 
 array l_paren number r_paren of 
 { 
-  
+ 
  m_arrays.push(1);
 }
-| 
+| array l_paren sub number r_paren of 
+{
+    cout << "ERROR" << endl;
+}
+|
 ;
             
 statement: 
@@ -851,7 +860,7 @@ IDENT {
  //check if the test exists befoehand
  string s = yytext;
 
- m_declarations.push("_" + string(yytext));
+ m_declarations.push_back(string(yytext));
  m_varStack.push("_"+ string(yytext));
 };      
 
@@ -890,3 +899,14 @@ void doOperationP(string op, string operand2, string operand3)
     m_varStack.push(ss.str());
     m_pn++;
 }
+
+bool isDeclared(string s){
+    for(int i= 0; i< m_declarations.size(); ++i){
+        if( s.compare(m_declarations[i]) == 0){
+            return true;
+        }
+    }
+    return false;
+}
+
+
