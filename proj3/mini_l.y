@@ -20,24 +20,30 @@
  using namespace std;
 
  stack<int> m_temporaries;
+
  //num temps
  int m_tn = 0;
+
  stack<int> m_predicates; 
  //num predicates
+
  int m_pn = 0;
  //int currentLabel = 0;
- //so this is insanely fucking annoying
+
  //everything is done RECURSIVELY
  //but we need to keep track of the changes between recusrive stacks since we eval exp -> 5 + 5
  //so we need to throw them into fucking stacks
+
  stack<int> m_labelStack;
  int m_ln = 0;
+
  stack<string> m_varStack;
  stack<string> m_compStack;
  vector<string> m_variables;
  stringstream output;
  stack<string> m_declarations;
  stack<int> m_arrays;
+
  vector<string> m_finalDecs;
  void doOperationT(string op,string operand2, string operand3);
 
@@ -45,6 +51,7 @@
  string loopLabel;
  stack<int> m_loopStack;
 
+ bool errorFlag = false;
 
  typedef struct  linkedListNode                                                                                                                                                                                                                                                   
  {                                                                                                                                                                                                                                                                                
@@ -168,7 +175,7 @@ comma identifier identifier_loop {
 if(m_arrays.empty())
 {
 	 output << "\t . " << m_varStack.top() << endl;
-	  m_varStack.pop();
+     m_varStack.pop();
 
 }
 
@@ -362,7 +369,6 @@ relation_and_exp extra_or {
  int l = m_labelStack.top();
  m_labelStack.pop();
  
- //output << "\t! p" << p << ", p" << p << endl;
  output << "\t?:= L" << l << ", p" << p << endl;
 
 }
