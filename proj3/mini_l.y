@@ -10,7 +10,7 @@
  #include <vector>
  #include <stack>
  #include <sstream>
- #include "header.h"
+
  void yyerror(const char *msg);
  extern int currLine;
  extern int currPos;
